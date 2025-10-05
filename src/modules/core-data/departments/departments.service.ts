@@ -8,6 +8,7 @@ import { EntityManager } from '@mikro-orm/mysql';
 import { Department } from './entities/department.entity';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
+import { Locations } from '@modules/algorithm-input/location/entities/locations.entity';
 
 @Injectable()
 export class DepartmentService {
@@ -28,7 +29,12 @@ export class DepartmentService {
       throw new ConflictException('Tên khoa đã tồn tại!');
     }
 
-    const department = this.em.create(Department, dto);
+    const location = await this.em.getReference(Locations, dto.location_id);
+
+    const department = this.em.create(Department, {
+      ...dto,
+      location,
+    });
     await this.em.persistAndFlush(department);
     return department;
   }

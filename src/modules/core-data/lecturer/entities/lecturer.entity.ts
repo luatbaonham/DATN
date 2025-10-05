@@ -6,9 +6,8 @@ import {
   OneToOne,
   Unique,
 } from '@mikro-orm/core';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/identity/users/entities/user.entity';
 import { Department } from '@modules/core-data/departments/entities/department.entity';
-import { Supervisor } from '@modules/core-data/supervisor/entities/supervisor.entity';
 @Entity()
 export class Lecturer {
   @PrimaryKey()
@@ -18,14 +17,19 @@ export class Lecturer {
   @Unique()
   lecturerCode!: string;
 
-  @OneToOne(() => User, { owner: true })
-  user!: User;
+  @OneToOne(() => User, {
+    owner: true,
+    nullable: true,
+    fieldName: 'user_id',
+    type: 'number',
+  })
+  user?: User;
 
-  @ManyToOne(() => Department)
+  @ManyToOne(() => Department, { nullable: true })
   department!: Department;
 
-  @OneToOne(() => Supervisor, (supervisor) => supervisor.lecturer)
-  supervisor?: Supervisor;
+  @Property({ default: false })
+  isSupervisor!: boolean;
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date = new Date();

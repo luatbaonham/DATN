@@ -1,12 +1,16 @@
 import {
+  Collection,
   Entity,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
+import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
+import { StudentExamGroup } from '@modules/algorithm-input/student-exam-group/entities/student-exam-group.entity';
 import { Classes } from '@modules/core-data/classes/entities/class.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/identity/users/entities/user.entity';
 
 @Entity()
 export class Student {
@@ -28,11 +32,22 @@ export class Student {
   @Property()
   phoneNumber?: string;
 
-  @OneToOne(() => User, { owner: true, nullable: true })
+  @OneToOne(() => User, {
+    owner: true,
+    nullable: true,
+    fieldName: 'user_id',
+    type: 'number',
+  })
   user?: User;
 
   @ManyToOne(() => Classes, { nullable: true })
   class?: Classes;
+
+  @OneToMany(() => StudentCourseRegistration, (reg) => reg.student)
+  registrations = new Collection<StudentCourseRegistration>(this);
+
+  @OneToMany(() => StudentExamGroup, (seg) => seg.student)
+  examGroups = new Collection<StudentExamGroup>(this);
 
   @Property({ onCreate: () => new Date() })
   createAt?: Date;

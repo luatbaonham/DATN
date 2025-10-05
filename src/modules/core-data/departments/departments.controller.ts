@@ -16,8 +16,8 @@ import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { DepartmentResponseDto } from './dto/department-response.dto';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
-import { AuthGuard } from '@modules/auth/guard/auth.guard';
-import { PermissionGuard } from '@modules/auth/guard/permission.guard';
+import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
+import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
 import { Permissions } from 'src/common/decorators/permissions.decorator';
 
 @ApiBearerAuth()

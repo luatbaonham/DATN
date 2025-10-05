@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { ResponseInterceptor } from './common/utils/interceptor';
+import { AllExceptionsFilter } from './common/utils/filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -27,7 +29,11 @@ async function bootstrap() {
     },
   });
 
-  //app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
   await app.listen(process.env.PORT ?? 3000);
+  console.log(
+    '🚀 Hệ thống API quản lý thi đã sẵn sàng tại http://localhost:3000/v1/api',
+  );
 }
 bootstrap();

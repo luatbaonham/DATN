@@ -1,5 +1,11 @@
 // create-lecturer.dto.ts
-import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsInt,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateLecturerDto {
@@ -15,15 +21,14 @@ export class CreateLecturerDto {
     description: 'ID người dùng',
     example: 1,
   })
-  @IsNumber({}, { message: 'ID người dùng phải là số' })
-  @IsNotEmpty({ message: 'ID người dùng không được để trống' })
-  userId!: number;
+  @IsOptional()
+  userId?: number;
 
   @ApiProperty({
     description: 'ID khoa',
     example: 1,
   })
-  @IsNumber({}, { message: 'ID khoa phải là số' })
+  @IsInt({ message: 'ID khoa phải là số nguyên' })
   @IsNotEmpty({ message: 'ID khoa không được để trống' })
   departmentId!: number;
 }

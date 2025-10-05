@@ -1,8 +1,8 @@
 import { EntityManager } from '@mikro-orm/core';
 import { Seeder } from '@mikro-orm/seeder';
-import { Permission } from '@modules/roles-permissions/entities/permission.entity';
-import { RolePermission } from '@modules/roles-permissions/entities/role-permission.entity';
-import { Role } from '@modules/roles-permissions/entities/role.entity';
+import { Permission } from '@modules/identity/roles-permissions/entities/permission.entity';
+import { RolePermission } from '@modules/identity/roles-permissions/entities/role-permission.entity';
+import { Role } from '@modules/identity/roles-permissions/entities/role.entity';
 
 export class PermissionSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {

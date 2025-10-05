@@ -2,9 +2,9 @@
 import { Seeder } from '@mikro-orm/seeder';
 import { EntityManager } from '@mikro-orm/core';
 import * as bcrypt from 'bcrypt';
-import { User } from '@modules/users/entities/user.entity';
-import { Role } from '@modules/roles-permissions/entities/role.entity';
-import { UserRole } from '@modules/users/entities/user-role.entity';
+import { User } from '@modules/identity/users/entities/user.entity';
+import { Role } from '@modules/identity/roles-permissions/entities/role.entity';
+import { UserRole } from '@modules/identity/users/entities/user-role.entity';
 
 export class UserAdminSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {

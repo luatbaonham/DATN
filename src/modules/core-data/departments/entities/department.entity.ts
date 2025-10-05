@@ -1,10 +1,12 @@
 import {
   Collection,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
+import { Locations } from '@modules/algorithm-input/location/entities/locations.entity';
 import { Classes } from '@modules/core-data/classes/entities/class.entity';
 import { Lecturer } from '@modules/core-data/lecturer/entities/lecturer.entity';
 
@@ -18,6 +20,9 @@ export class Department {
 
   @Property()
   departmentCode!: string;
+
+  @ManyToOne(() => Locations)
+  location!: Locations;
 
   @OneToMany(() => Classes, (lop) => lop.department)
   class = new Collection<Classes>(this);

@@ -1,7 +1,8 @@
 // student-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Transform } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 
+@Exclude()
 export class StudentResponseDto {
   @ApiProperty({ description: 'ID sinh viên', example: 1 })
   @Expose()

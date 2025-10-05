@@ -47,4 +47,8 @@ export class CreateStudentDto {
   @IsOptional()
   @IsString()
   phoneNumber?: string;
+
+  @ApiProperty({ required: false, description: 'ID user muốn gắn (nếu có)' })
+  @IsOptional()
+  userId?: number;
 }

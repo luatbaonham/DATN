@@ -3,16 +3,22 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import config from 'mikro-orm.config';
-import { UsersModule } from '@modules/users/user.module';
+import { UsersModule } from '@modules/identity/users/user.module';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from '@modules/auth/auth.module';
+import { AuthModule } from '@modules/identity/auth/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { RolesPermissionsModule } from '@modules/roles-permissions/roles-per.module';
+import { RolesPermissionsModule } from '@modules/identity/roles-permissions/roles-per.module';
 import { DepartmentModule } from '@modules/core-data/departments/department.module';
 import { StudentModule } from '@modules/core-data/students/student.module';
 import { ClassModule } from '@modules/core-data/classes/class.module';
-import { SupervisorModule } from '@modules/core-data/supervisor/supervisor.module';
 import { LecturerModule } from '@modules/core-data/lecturer/lecturer.module';
+import { CourseModule } from '@modules/algorithm-input/course/course.module';
+import { ExamSessionModule } from '@modules/algorithm-input/exam-session/exam-session.module';
+import { RoomsModule } from '@modules/algorithm-input/room/room.module';
+import { StudentCourseRegistrationsModule } from '@modules/algorithm-input/student-course-registration/student-course-registrations.module';
+import { StudentExamGroupsModule } from '@modules/algorithm-input/student-exam-group/student-exam-groups.module';
+import { ExamGroupsModule } from '@modules/algorithm-input/exam-group/exam-groups.module';
+import { LocationsModule } from '@modules/algorithm-input/location/locations.module';
 @Module({
   imports: [
     MikroOrmModule.forRoot(config),
@@ -20,14 +26,23 @@ import { LecturerModule } from '@modules/core-data/lecturer/lecturer.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    UsersModule,
+    //
     AuthModule,
     RolesPermissionsModule,
-    DepartmentModule,
-    StudentModule,
+    UsersModule,
+    //
     ClassModule,
-    SupervisorModule,
+    DepartmentModule,
     LecturerModule,
+    StudentModule,
+    //
+    CourseModule,
+    ExamGroupsModule,
+    ExamSessionModule,
+    LocationsModule,
+    RoomsModule,
+    StudentCourseRegistrationsModule,
+    StudentExamGroupsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

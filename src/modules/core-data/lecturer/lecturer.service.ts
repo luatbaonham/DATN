@@ -8,7 +8,7 @@ import { EntityManager } from '@mikro-orm/mysql';
 import { Lecturer } from './entities/lecturer.entity';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/identity/users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 
 @Injectable()
@@ -16,6 +16,7 @@ export class LecturerService {
   constructor(private readonly em: EntityManager) {}
 
   async create(dto: CreateLecturerDto): Promise<Lecturer> {
+    // ✅ 1. Check trùng mã
     const existCode = await this.em.findOne(Lecturer, {
       lecturerCode: dto.code,
     });
@@ -23,16 +24,26 @@ export class LecturerService {
       throw new ConflictException('Mã giảng viên đã tồn tại!');
     }
 
-    const user = await this.em.findOne(User, { id: dto.userId });
-    if (!user) {
-      throw new NotFoundException('Không tìm thấy người dùng');
+    // ✅ 2. Check user (nếu có)
+    let user: User | undefined;
+    if (dto.userId) {
+      user = (await this.em.findOne(User, { id: dto.userId })) ?? undefined;
+      if (!user) {
+        throw new NotFoundException(
+          'Không tìm thấy người dùng để gắn vào giảng viên',
+        );
+      }
+
+      // check user đã có hồ sơ giảng viên chưa
+      const existedLecturer = await this.em.findOne(Lecturer, { user });
+      if (existedLecturer) {
+        throw new ConflictException(
+          'User này đã được gắn với hồ sơ giảng viên khác!',
+        );
+      }
     }
 
-    const existLecturer = await this.em.findOne(Lecturer, { user });
-    if (existLecturer) {
-      throw new ConflictException('Người dùng đã có hồ sơ giảng viên!');
-    }
-
+    // ✅ 3. Check department
     const department = await this.em.findOne(Department, {
       id: dto.departmentId,
     });
@@ -40,11 +51,14 @@ export class LecturerService {
       throw new NotFoundException('Không tìm thấy khoa');
     }
 
+    // ✅ 4. Tạo lecturer
     const lecturer = this.em.create(Lecturer, {
       lecturerCode: dto.code,
       user,
       department,
+      isSupervisor: false,
     });
+
     await this.em.persistAndFlush(lecturer);
     return lecturer;
   }

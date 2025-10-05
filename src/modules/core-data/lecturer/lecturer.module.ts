@@ -4,7 +4,7 @@ import { LecturerController } from './lecturer.controller';
 import { LecturerService } from './lecturer.service';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Lecturer } from './entities/lecturer.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/identity/users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 
 @Module({

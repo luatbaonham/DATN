@@ -1,7 +1,7 @@
 // lecturer-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Exclude, Type } from 'class-transformer';
-import { UserResponseDto } from '@modules/users/dto/user-response.dto';
+import { UserResponseDto } from '@modules/identity/users/dto/user-response.dto';
 import { DepartmentResponseDto } from '@modules/core-data/departments/dto/department-response.dto';
 
 @Exclude() // ẩn toàn bộ field mặc định

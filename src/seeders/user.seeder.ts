@@ -1,7 +1,7 @@
 // src/seeders/user.seeder.ts
 import { Seeder } from '@mikro-orm/seeder';
 import { EntityManager } from '@mikro-orm/core';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/identity/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 export class UserSeeder extends Seeder {
