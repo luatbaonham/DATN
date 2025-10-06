@@ -13,7 +13,7 @@ import { UpdateStudentExamGroupDto } from './dto/update-student-exam-group.dto';
 import { StudentExamGroupResponseDto } from './dto/student-exam-group-response.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('Student Exam Groups')
+@ApiTags('student exam groups')
 @Controller('student-exam-groups')
 export class StudentExamGroupsController {
   constructor(private readonly service: StudentExamGroupsService) {}

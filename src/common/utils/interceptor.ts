@@ -26,7 +26,7 @@ export class ResponseInterceptor<T>
 
     return next.handle().pipe(
       map((result: any) => {
-        const statusCode = res?.statusCode ?? 200;
+        const statusCode = 200;
 
         if (result && typeof result === 'object' && 'data' in result) {
           return {

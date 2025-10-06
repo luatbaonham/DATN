@@ -9,7 +9,12 @@ import {
   UseGuards,
   Delete,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RolesPermissionsService } from './roles-per.service';
 import { AssignPermissionDto } from './dto/assign-permisson.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
@@ -27,7 +32,14 @@ export class RolesPermissionsController {
   @Get('roles')
   @UseGuards(AuthGuard, PermissionGuard)
   @Permissions('manage_roles:roles')
-  @ApiResponse({ status: 200, description: 'Lấy tất cả role kèm permission' })
+  @ApiOperation({
+    summary: 'Lấy tất cả roles',
+    description: 'Trả về danh sách tất cả roles cùng các permission kèm theo',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '✅ **Lấy thành công danh sách roles**',
+  })
   async getRolesWithPermissions() {
     const roles = await this.service.getRolesWithPermissions();
     return { success: true, data: roles };
@@ -36,7 +48,15 @@ export class RolesPermissionsController {
   @Get('roles/:id')
   @UseGuards(AuthGuard, PermissionGuard)
   @Permissions('manage_roles:roles')
-  @ApiResponse({ status: 200, description: 'Lấy chi tiết role kèm permission' })
+  @ApiOperation({
+    summary: 'Lấy chi tiết role',
+    description: 'Lấy thông tin chi tiết một role cùng các permission của nó',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '✅ **Lấy thành công role**',
+  })
+  @ApiResponse({ status: 404, description: '❌ **Role không tồn tại**' })
   async getRoleWithPermissions(@Param('id', ParseIntPipe) roleId: number) {
     const role = await this.service.getRoleWithPermissions(roleId);
     return { success: true, data: role };
@@ -45,7 +65,18 @@ export class RolesPermissionsController {
   @Post('roles')
   @UseGuards(AuthGuard, PermissionGuard)
   @Permissions('manage_roles:roles')
-  @ApiResponse({ status: 201, description: 'Tạo role mới' })
+  @ApiOperation({
+    summary: 'Tạo role mới',
+    description: 'Tạo một role mới với thông tin được cung cấp',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '✅ **Role được tạo thành công**',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '❌ **Dữ liệu không hợp lệ**',
+  })
   async createRole(@Body() body: CreateRoleDto) {
     const role = await this.service.createRole(body);
     return { success: true, data: role };
@@ -54,7 +85,18 @@ export class RolesPermissionsController {
   @Put('roles/:id/permissions')
   @UseGuards(AuthGuard, PermissionGuard)
   @Permissions('manage_roles:roles')
-  @ApiResponse({ status: 200, description: 'Gán permissions cho role' })
+  @ApiOperation({
+    summary: 'Gán permissions cho role',
+    description: 'Cập nhật danh sách permissions cho một role',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '✅ **Gán permissions thành công**',
+  })
+  @ApiResponse({
+    status: 404,
+    description: '❌ **Role không tồn tại**',
+  })
   async assignPermissions(
     @Param('id', ParseIntPipe) roleId: number,
     @Body() body: AssignPermissionDto,
@@ -65,7 +107,18 @@ export class RolesPermissionsController {
   @Put('users/:id/roles')
   @UseGuards(AuthGuard, PermissionGuard)
   @Permissions('manage_roles:roles')
-  @ApiResponse({ status: 200, description: 'Gán roles cho user' })
+  @ApiOperation({
+    summary: 'Gán roles cho user',
+    description: 'Gán một hoặc nhiều role cho user cụ thể',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '✅ **Gán roles thành công**',
+  })
+  @ApiResponse({
+    status: 404,
+    description: '❌ **User hoặc role không tồn tại**',
+  })
   async assignRoles(
     @Param('id', ParseIntPipe) userId: number,
     @Body() body: AssignRoleDto,
@@ -76,11 +129,21 @@ export class RolesPermissionsController {
   @Delete(':id')
   @UseGuards(AuthGuard, PermissionGuard)
   @Permissions('manage_roles:roles')
-  @ApiResponse({ status: 200, description: 'Xóa role thành công' })
-  @ApiResponse({ status: 404, description: 'Không tìm thấy role' })
+  @ApiOperation({
+    summary: 'Xóa role',
+    description: 'Xóa một role. Nếu role đang được gán cho user sẽ báo lỗi',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '✅ **Xóa role thành công**',
+  })
+  @ApiResponse({
+    status: 404,
+    description: '❌ **Role không tồn tại**',
+  })
   @ApiResponse({
     status: 409,
-    description: 'Role đang được gán cho người dùng',
+    description: '❌ **Role đang được gán cho người dùng**',
   })
   async removeRole(
     @Param('id', ParseIntPipe) id: number,

@@ -15,7 +15,12 @@ import { RegisterDto } from './dto/dto.req/register_user.dto';
 import { LoginDto } from './dto/dto.req/login_user.dto';
 import { LoginResponseDto } from './dto/dto.rep/login-response.dto';
 import { RegisterResponseDto } from './dto/dto.rep/register-response.dto';
-import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { RefreshTokenDto } from './dto/dto.req/refresh_token.dto';
 import { RefreshTokenResponseDto } from './dto/dto.rep/refresh_token_response.dto';
@@ -42,10 +47,21 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @ApiOperation({
+    summary: 'Đăng ký tài khoản mới',
+    description:
+      'Tạo một tài khoản người dùng mới. Tài khoản sẽ được tạo với quyền mặc định.',
+  })
   @ApiResponse({
-    status: 201,
-    description: 'Đăng ký thành công',
+    status: 200,
+    description:
+      '✅ **Đăng ký thành công**\n\nTrả về thông tin tài khoản vừa tạo.',
     type: RegisterResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      '❌ **Yêu cầu không hợp lệ**\n\n- Email đã tồn tại\n- Lỗi validate dữ liệu đầu vào',
   })
   async register(@Body() dto: RegisterDto) {
     const user = await this.auth.register(dto);
@@ -55,10 +71,19 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({
+    summary: 'Đăng nhập',
+    description: 'Đăng nhập bằng email và mật khẩu, trả về token và profile.',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Đăng nhập thành công',
+    description: '✅ **Đăng nhập thành công**',
     type: LoginResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description:
+      '❌ **Không xác thực**\n\n- Email chưa đăng ký\n- Mật khẩu không đúng',
   })
   async login(@Req() req, @Body() dto: LoginDto) {
     const user = await this.em.findOne(
@@ -74,13 +99,6 @@ export class AuthController {
     const roles = user.userRoles.getItems().map((ur) => ur.role.name);
     // Lấy thông tin thiết bị, ipAddress, userAgent từ request
     const { deviceInfo, ipAddress, userAgent } = getDeviceInfo(req);
-    // Log thông tin để test
-    // console.log('=== Login Request Info ===');
-    // console.log('IP Address:', ipAddress);
-    // console.log('User-Agent:', userAgent);
-    // console.log('Device Info:', deviceInfo);
-    // console.log('============================');
-
     const tokens = await this.auth.login(dto, {
       deviceInfo,
       ipAddress,
@@ -106,9 +124,13 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @ApiOperation({
+    summary: 'Làm mới token',
+    description: 'Refresh access token bằng refresh token.',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Refresh token thành công',
+    description: '✅ **Refresh token thành công**',
     type: RefreshTokenResponseDto,
   })
   async refresh(
@@ -136,9 +158,13 @@ export class AuthController {
     });
   }
   @Post('logout')
+  @ApiOperation({
+    summary: 'Logout 1 thiết bị',
+    description: 'Đăng xuất 1 thiết bị bằng refresh token.',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Logout 1 thiết bị thành công',
+    description: '✅ **Logout thành công**',
     type: LogoutResponseDto,
   })
   async logout(@Body() dto: LogoutDto): Promise<LogoutResponseDto> {
@@ -149,9 +175,13 @@ export class AuthController {
   }
 
   @Post('logout-all/:id')
+  @ApiOperation({
+    summary: 'Logout tất cả thiết bị của user',
+    description: 'Đăng xuất tất cả các thiết bị đang đăng nhập của user.',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Đã logout tất cả thiết bị',
+    description: '✅ **Đã logout tất cả thiết bị**',
     type: LogoutResponseDto,
   })
   async logoutAll(
@@ -164,9 +194,13 @@ export class AuthController {
   }
 
   @Get('sessions/:id')
+  @ApiOperation({
+    summary: 'Danh sách session của user',
+    description: 'Lấy danh sách tất cả session đang hoạt động của user.',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Danh sách session đang login của user',
+    description: '✅ **Danh sách session**',
     type: SessionResponseDto,
   })
   async getSessions(@Param('id', ParseIntPipe) userId: number) {

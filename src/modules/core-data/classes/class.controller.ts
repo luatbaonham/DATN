@@ -14,7 +14,13 @@ import { ClassService } from './class.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { ClassResponseDto } from './dto/class-response.dto';
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
 import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
@@ -29,9 +35,13 @@ export class ClassController {
 
   @Get()
   @Permissions('manage_classes:classes')
+  @ApiOperation({
+    summary: 'Lấy danh sách lớp học',
+    description: 'Trả về danh sách tất cả lớp học',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Danh sách tất cả lớp học',
+    description: '✅ Lấy thành công danh sách lớp học',
     type: [ClassResponseDto],
   })
   async findAll(): Promise<ClassResponseDto[]> {
@@ -42,12 +52,16 @@ export class ClassController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Chi tiết lớp học',
+    description: 'Lấy thông tin chi tiết một lớp học theo ID',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Chi tiết lớp học',
+    description: '✅ Lấy thành công thông tin lớp học',
     type: ClassResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Không tìm thấy lớp học' })
+  @ApiResponse({ status: 404, description: '❌ Không tìm thấy lớp học' })
   async findOne(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ClassResponseDto> {
@@ -58,12 +72,16 @@ export class ClassController {
   }
 
   @Post()
+  @ApiOperation({
+    summary: 'Tạo lớp học mới',
+    description: 'Tạo một lớp học mới với dữ liệu được cung cấp',
+  })
   @ApiResponse({
-    status: 201,
-    description: 'Tạo lớp học thành công',
+    status: 200,
+    description: '✅ Tạo lớp học thành công',
     type: ClassResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+  @ApiResponse({ status: 400, description: '❌ Dữ liệu không hợp lệ' })
   async create(
     @Body() createClassDto: CreateClassDto,
   ): Promise<ClassResponseDto> {
@@ -74,13 +92,17 @@ export class ClassController {
   }
 
   @Put(':id')
+  @ApiOperation({
+    summary: 'Cập nhật lớp học',
+    description: 'Cập nhật thông tin lớp học theo ID',
+  })
   @ApiBody({ type: UpdateClassDto })
   @ApiResponse({
     status: 200,
-    description: 'Cập nhật lớp học thành công',
+    description: '✅ Cập nhật lớp học thành công',
     type: ClassResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Không tìm thấy lớp học' })
+  @ApiResponse({ status: 404, description: '❌ Không tìm thấy lớp học' })
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateClassDto: UpdateClassDto,
@@ -92,8 +114,12 @@ export class ClassController {
   }
 
   @Delete(':id')
-  @ApiResponse({ status: 200, description: 'Xóa lớp học thành công' })
-  @ApiResponse({ status: 404, description: 'Không tìm thấy lớp học' })
+  @ApiOperation({
+    summary: 'Xóa lớp học',
+    description: 'Xóa một lớp học theo ID',
+  })
+  @ApiResponse({ status: 200, description: '✅ Xóa lớp học thành công' })
+  @ApiResponse({ status: 404, description: '❌ Không tìm thấy lớp học' })
   async remove(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ success: boolean }> {

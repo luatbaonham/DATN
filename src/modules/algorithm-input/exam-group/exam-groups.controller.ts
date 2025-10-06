@@ -15,7 +15,7 @@ import { ExamGroupResponseDto } from './dto/exam-group-response.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 
-@ApiTags('Exam Groups')
+@ApiTags('exam group')
 @Controller('exam-groups')
 export class ExamGroupsController {
   constructor(private readonly service: ExamGroupsService) {}
