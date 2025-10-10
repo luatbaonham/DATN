@@ -1,12 +1,17 @@
+import { map } from 'rxjs/operators';
 import {
   Injectable,
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { EntityManager } from '@mikro-orm/mysql';
+import { EntityManager, FilterQuery } from '@mikro-orm/mysql';
 import { Locations } from './entities/locations.entity';
 import { CreateLocationDto } from './dto/create-locations.dto';
 import { UpdateLocationsDto } from './dto/update-locations.dto';
+import { LocationsFilterDto } from './dto/locations-filter.dto';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { LocationResponseDto } from './dto/locations-response.dto';
+import { plainToInstance } from 'class-transformer';
 @Injectable()
 export class LocationsService {
   constructor(private readonly em: EntityManager) {}
@@ -19,8 +24,31 @@ export class LocationsService {
     return location;
   }
 
-  async findAll(): Promise<Locations[]> {
-    return this.em.find(Locations, {});
+  async findAll(
+    filter: LocationsFilterDto,
+  ): Promise<PaginatedResponseDto<LocationResponseDto>> {
+    const { page = 1, limit = 10, code, name } = filter;
+    const offset = (page - 1) * limit;
+
+    const where: FilterQuery<Locations> = {};
+
+    if (code) {
+      where.code = { $like: `%${code}%` };
+    }
+    if (name) {
+      where.name = { $like: `%${name}%` };
+    }
+
+    const [locations, total] = await this.em.findAndCount(Locations, where, {
+      limit,
+      offset,
+      orderBy: { createAt: 'DESC' },
+    });
+
+    const mapped = plainToInstance(LocationResponseDto, locations, {
+      excludeExtraneousValues: true,
+    });
+    return PaginatedResponseDto.from(mapped, page, limit, total);
   }
 
   async findOne(id: number): Promise<Locations> {

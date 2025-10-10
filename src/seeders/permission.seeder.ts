@@ -214,6 +214,12 @@ export class PermissionSeeder extends Seeder {
         description: 'Xem nhật ký hệ thống',
         roles: ['ADMIN'],
       },
+      {
+        action: 'manage_lecturers',
+        resource: 'lecturers',
+        description: 'Quản lý thông tin giảng viên',
+        roles: ['ADMIN', 'GIAO_VU'],
+      },
     ];
 
     // Tạo hoặc lấy roles trước

@@ -4,12 +4,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EntityManager } from '@mikro-orm/mysql';
+import { EntityManager, t } from '@mikro-orm/mysql';
 import { Lecturer } from './entities/lecturer.entity';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 import { User } from '@modules/identity/users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
+import { LecturerFilterDto } from './dto/lecturer-filter.dto';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { LecturerResponseDto } from './dto/lecturer-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class LecturerService {
@@ -63,8 +67,60 @@ export class LecturerService {
     return lecturer;
   }
 
-  async findAll(): Promise<Lecturer[]> {
-    return this.em.find(Lecturer, {}, { populate: ['user', 'department'] });
+  async findAll(
+    filter: LecturerFilterDto,
+  ): Promise<PaginatedResponseDto<LecturerResponseDto>> {
+    const {
+      page = 1,
+      limit = 10,
+      lecturerCode,
+      departmentId,
+      fullName,
+      email,
+    } = filter;
+    const offset = (page - 1) * limit;
+    const qb = this.em
+      .createQueryBuilder(Lecturer, 'l')
+      .leftJoinAndSelect('l.user', 'u')
+      .leftJoinAndSelect('l.department', 'd');
+    // filter by lecturerCode
+    if (lecturerCode) {
+      qb.andWhere({ lecturerCode: { $ilike: `%${lecturerCode}%` } });
+    }
+    //
+    if (departmentId) {
+      qb.andWhere({ department: departmentId });
+    }
+    //
+    if (fullName && fullName.trim() !== '') {
+      qb.andWhere(`LOWER(CONCAT(u.last_name,' '.u.first_name)) LIKE LOWER(?)`, [
+        `%${fullName}%`,
+      ]);
+    }
+    //
+    if (email && email.trim() !== '') {
+      qb.andWhere('LOWER(u.email)LIKE LOWER(?)', [`%${email}%`]);
+    }
+
+    qb.orderBy({ 'l.createdAt': 'DESC' }).limit(limit).offset(offset);
+
+    const [lecturer, total] = await qb.getResultAndCount();
+    const formatted = lecturer.map((l) => ({
+      id: l.id,
+      lecturerCode: l.lecturerCode,
+      firstName: l.user?.firstName ?? '',
+      lastName: l.user?.lastName ?? '',
+      email: l.user?.email ?? '',
+      departmentId: l.department ?? '',
+      createdAt: l.createdAt,
+      updatedAt: l.updatedAt,
+    }));
+
+    const mapped = plainToInstance(LecturerResponseDto, formatted, {
+      excludeExtraneousValues: true,
+    });
+
+    return PaginatedResponseDto.from(mapped, page, limit, total);
   }
 
   async findOne(id: number): Promise<Lecturer | null> {

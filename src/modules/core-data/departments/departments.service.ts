@@ -9,6 +9,10 @@ import { Department } from './entities/department.entity';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { Locations } from '@modules/algorithm-input/location/entities/locations.entity';
+import { DepartmentFilterDto } from './dto/department-filter.dto';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { DepartmentResponseDto } from './dto/department-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class DepartmentService {
@@ -39,8 +43,35 @@ export class DepartmentService {
     return department;
   }
 
-  async findAll(): Promise<Department[]> {
-    return this.em.find(Department, {});
+  async findAll(
+    filter: DepartmentFilterDto,
+  ): Promise<PaginatedResponseDto<DepartmentResponseDto>> {
+    const { page = 1, limit = 10, departmentCode, departmentName } = filter;
+    const offset = (page - 1) * limit;
+
+    const qb = this.em.createQueryBuilder(Department, 'd');
+    if (departmentCode && departmentCode.trim() !== '') {
+      qb.andWhere('LOWER(d.department_code) LIKE LOWER(?)', [
+        `%${departmentCode}%`,
+      ]);
+    }
+
+    if (departmentName && departmentName.trim() !== '') {
+      qb.andWhere('LOWER(d.department_name) LIKE LOWER(?)', [
+        `%${departmentName}%`,
+      ]);
+    }
+
+    qb.orderBy({ createAt: 'DESC' }).limit(limit).offset(offset);
+
+    const [data, total] = await qb.getResultAndCount();
+
+    const items = plainToInstance(DepartmentResponseDto, data, {
+      excludeExtraneousValues: true,
+    });
+
+    // --- Trả kết quả phân trang ---
+    return PaginatedResponseDto.from(items, total, page, limit);
   }
 
   async findOne(id: number): Promise<Department | null> {

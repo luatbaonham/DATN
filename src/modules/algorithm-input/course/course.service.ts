@@ -4,10 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EntityManager } from '@mikro-orm/mysql';
+import { EntityManager, FilterQuery } from '@mikro-orm/mysql';
 import { Course } from './entities/course.entity';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { CourseFilterDto } from './dto/course-filter.dto';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { CourseResponseDto } from './dto/course-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class CourseService {
@@ -28,8 +32,42 @@ export class CourseService {
   }
 
   // Lấy tất cả môn học
-  async findAll(): Promise<Course[]> {
-    return this.em.find(Course, {});
+  async findAll(
+    filter: CourseFilterDto,
+  ): Promise<PaginatedResponseDto<CourseResponseDto>> {
+    const { page = 1, limit = 10, codeCourse, nameCourse, credits } = filter;
+    const offset = (page - 1) * limit;
+
+    // 🎯 Tạo điều kiện filter đơn giản
+    const where: FilterQuery<Course> = {};
+
+    if (codeCourse) {
+      // LIKE không phân biệt hoa thường (chạy tốt cho MySQL utf8_general_ci)
+      where.codeCourse = { $like: `%${codeCourse}%` };
+    }
+
+    if (nameCourse) {
+      where.nameCourse = { $like: `%${nameCourse}%` };
+    }
+
+    if (credits) {
+      where.credits = credits;
+    }
+
+    // ⚡ Lấy dữ liệu + đếm tổng
+    const [courses, total] = await this.em.findAndCount(Course, where, {
+      limit,
+      offset,
+      orderBy: { createAt: 'DESC' },
+    });
+
+    // 🔄 Map sang DTO
+    const mapped = plainToInstance(CourseResponseDto, courses, {
+      excludeExtraneousValues: true,
+    });
+
+    // 📦 Trả về dạng chuẩn
+    return PaginatedResponseDto.from(mapped, page, limit, total);
   }
 
   // Lấy 1 môn học theo ID

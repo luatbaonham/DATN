@@ -9,6 +9,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,6 +20,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -30,6 +32,8 @@ import {
   AuthUser,
   CurrentUser,
 } from 'src/common/decorators/current-user.decorator';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { UserFilterDto } from './dto/user-filter.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard, PermissionGuard)
@@ -39,6 +43,10 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'fullName', required: false, type: String })
+  @ApiQuery({ name: 'email', required: false, type: String })
   @Permissions('manage_users:users')
   @ApiOperation({
     summary: 'Lấy danh sách user',
@@ -47,25 +55,12 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: '✅ Lấy thành công danh sách user',
-    type: [UserResponseDto],
+    type: PaginatedResponseDto,
   })
-  async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.userService.findAll();
-    //
-    const transformed = users.map((user) => {
-      const roles = user.userRoles?.map((ur) => ({
-        id: ur.role.id,
-        name: ur.role.name,
-        description: ur.role.description,
-      })); // lấy role từ userRoles
-      return {
-        ...user,
-        roles,
-      };
-    });
-    return plainToInstance(UserResponseDto, transformed, {
-      excludeExtraneousValues: true,
-    });
+  async findAll(
+    @Query() filter: UserFilterDto,
+  ): Promise<PaginatedResponseDto<UserResponseDto>> {
+    return this.userService.findAll(filter);
   }
 
   @Get('profile')

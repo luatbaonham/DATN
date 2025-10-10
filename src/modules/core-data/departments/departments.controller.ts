@@ -9,16 +9,25 @@ import {
   Put,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { DepartmentService } from './departments.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { DepartmentResponseDto } from './dto/department-response.dto';
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
 import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
 import { Permissions } from 'src/common/decorators/permissions.decorator';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { DepartmentFilterDto } from './dto/department-filter.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard, PermissionGuard)
@@ -28,17 +37,20 @@ export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService) {}
 
   @Get()
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'departmentCode', required: false, type: String })
+  @ApiQuery({ name: 'departmentName', required: false, type: String })
   // @Permissions('manage_departments:departments')
   @ApiResponse({
     status: 200,
     description: 'Danh sách tất cả khoa',
-    type: [DepartmentResponseDto],
+    type: PaginatedResponseDto,
   })
-  async findAll(): Promise<DepartmentResponseDto[]> {
-    const departments = await this.departmentService.findAll();
-    return plainToInstance(DepartmentResponseDto, departments, {
-      excludeExtraneousValues: true,
-    });
+  async findAll(
+    @Query() filter: DepartmentFilterDto,
+  ): Promise<PaginatedResponseDto<DepartmentResponseDto>> {
+    return this.departmentService.findAll(filter);
   }
 
   @Get(':id')

@@ -3,12 +3,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EntityManager } from '@mikro-orm/mysql';
+import { EntityManager, FilterQuery } from '@mikro-orm/mysql';
 import { Student } from './entities/student.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { User } from '@modules/identity/users/entities/user.entity';
 import { Classes } from '@modules/core-data/classes/entities/class.entity';
+import { StudentResponseDto } from './dto/student-response.dto';
+import { plainToInstance } from 'class-transformer';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { StudentFilterDto } from './dto/student-filter.dto';
 
 @Injectable()
 export class StudentService {
@@ -50,8 +54,78 @@ export class StudentService {
     return student;
   }
 
-  async findAll(): Promise<Student[]> {
-    return this.em.find(Student, {}, { populate: ['user', 'class'] });
+  async findAll(
+    filter: StudentFilterDto,
+  ): Promise<PaginatedResponseDto<StudentResponseDto>> {
+    const {
+      page = 1,
+      limit = 10,
+      studentCode,
+      fullName,
+      email,
+      classId,
+      gender,
+    } = filter;
+    const offset = (page - 1) * limit;
+
+    const qb = this.em
+      .createQueryBuilder(Student, 's')
+      .leftJoinAndSelect('s.user', 'u')
+      .leftJoinAndSelect('s.class', 'c');
+
+    // Lọc theo mã SV
+    if (studentCode) {
+      qb.andWhere({ studentCode: { $ilike: `%${studentCode}%` } });
+    }
+
+    // Lọc theo giới tính
+    if (gender) {
+      qb.andWhere({ gender });
+    }
+
+    // Lọc theo lớp
+    if (classId) {
+      qb.andWhere({ class: classId });
+    }
+
+    // Lọc theo họ tên (ghép họ + tên)
+    if (fullName && fullName.trim() !== '') {
+      qb.andWhere(
+        `LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(?)`,
+        [`%${fullName}%`],
+      );
+    }
+
+    // Lọc theo email (nằm trong entity User)
+    if (email && email.trim() !== '') {
+      // qb.andWhere('u.email ILIKE ?', [`%${email}%`]); này là dùng cho postgres,
+      qb.andWhere('LOWER(u.email) LIKE LOWER(?)', [`%${email}%`]); //này tương đương ILIKE, nhưng dùng đc cho Postgres, MySQL, SQLite.
+      //ILIKE chỉ dùng đc cho postgres, còn mysql thì dùng LIKE
+    }
+
+    qb.orderBy({ 's.createAt': 'DESC' }).limit(limit).offset(offset);
+
+    const [students, total] = await qb.getResultAndCount();
+
+    const formatted = students.map((s) => ({
+      id: s.id,
+      studentCode: s.studentCode,
+      firstName: s.user?.firstName ?? '',
+      lastName: s.user?.lastName ?? '',
+      email: s.user?.email ?? '',
+      dateOfBirth: s.dateOfBirth,
+      gender: s.gender,
+      address: s.address,
+      phoneNumber: s.phoneNumber,
+      createdAt: s.createAt,
+      updatedAt: s.updateAt,
+    }));
+
+    const mapped = plainToInstance(StudentResponseDto, formatted, {
+      excludeExtraneousValues: true,
+    });
+
+    return PaginatedResponseDto.from(mapped, page, limit, total);
   }
 
   async findOne(id: number): Promise<Student | null> {

@@ -9,6 +9,7 @@ import {
   Put,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ClassService } from './class.service';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -18,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -25,6 +27,8 @@ import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
 import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
 import { Permissions } from 'src/common/decorators/permissions.decorator';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { ClassFilterDto } from './dto/class-filter.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard, PermissionGuard)
@@ -34,21 +38,24 @@ export class ClassController {
   constructor(private readonly classService: ClassService) {}
 
   @Get()
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'classCode', required: false, type: String })
+  @ApiQuery({ name: 'className', required: false, type: String })
   @Permissions('manage_classes:classes')
   @ApiOperation({
     summary: 'Lấy danh sách lớp học',
-    description: 'Trả về danh sách tất cả lớp học',
+    description: 'Danh sách lớp học có phân trang và lọc',
   })
   @ApiResponse({
     status: 200,
     description: '✅ Lấy thành công danh sách lớp học',
-    type: [ClassResponseDto],
+    type: PaginatedResponseDto,
   })
-  async findAll(): Promise<ClassResponseDto[]> {
-    const classes = await this.classService.findAll();
-    return plainToInstance(ClassResponseDto, classes, {
-      excludeExtraneousValues: true,
-    });
+  async findAll(
+    @Query() filter: ClassFilterDto,
+  ): Promise<PaginatedResponseDto<ClassResponseDto>> {
+    return this.classService.findAll(filter);
   }
 
   @Get(':id')

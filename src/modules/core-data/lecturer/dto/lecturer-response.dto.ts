@@ -35,12 +35,12 @@ export class LecturerResponseDto {
     description: 'Thời gian tạo hồ sơ giảng viên',
   })
   @Expose()
-  createAt?: Date;
+  createdAt?: Date;
 
   @ApiProperty({
     example: '2023-10-11T10:00:00Z',
     description: 'Thời gian cập nhật hồ sơ giảng viên gần nhất',
   })
   @Expose()
-  updateAt?: Date;
+  updatedAt?: Date;
 }

@@ -9,16 +9,25 @@ import {
   Put,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentResponseDto } from './dto/student-response.dto';
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
 import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
 import { Permissions } from 'src/common/decorators/permissions.decorator';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { StudentFilterDto } from './dto/student-filter.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard, PermissionGuard)
@@ -28,17 +37,22 @@ export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
   @Get()
-  // @Permissions('manage_students:students')
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'studentCode', required: false, type: String })
+  @ApiQuery({ name: 'fullName', required: false, type: String })
+  @ApiQuery({ name: 'email', required: false, type: String })
+  @ApiQuery({ name: 'classId', required: false, type: Number })
+  @ApiQuery({ name: 'gender', required: false, type: String })
   @ApiResponse({
     status: 200,
-    description: 'Danh sách tất cả sinh viên',
-    type: [StudentResponseDto],
+    description: 'Danh sách sinh viên có phân trang và lọc',
+    type: PaginatedResponseDto,
   })
-  async findAll(): Promise<StudentResponseDto[]> {
-    const students = await this.studentService.findAll();
-    return plainToInstance(StudentResponseDto, students, {
-      excludeExtraneousValues: true,
-    });
+  async findAll(
+    @Query() filter: StudentFilterDto,
+  ): Promise<PaginatedResponseDto<StudentResponseDto>> {
+    return this.studentService.findAll(filter);
   }
 
   @Get(':id')

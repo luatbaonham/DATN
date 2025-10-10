@@ -10,11 +10,11 @@ export class ClassResponseDto {
   id!: number;
 
   @ApiProperty({ example: 'Lớp 20CLC', description: 'Tên lớp học' })
-  @Expose()
+  @Expose({ name: 'className' })
   name!: string;
 
   @ApiProperty({ example: '20CLC', description: 'Mã lớp học' })
-  @Expose()
+  @Expose({ name: 'classCode' })
   code!: string;
 
   @Expose()

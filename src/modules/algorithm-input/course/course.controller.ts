@@ -8,15 +8,24 @@ import {
   Put,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseResponseDto } from './dto/course-response.dto';
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
 import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { CourseFilterDto } from './dto/course-filter.dto';
 // import { Permissions } from 'src/common/decorators/permissions.decorator';
 
 @ApiBearerAuth()
@@ -27,16 +36,20 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Get()
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'codeCourse', required: false, type: String })
+  @ApiQuery({ name: 'nameCourse', required: false, type: String })
+  @ApiQuery({ name: 'credits', required: false, type: Number })
   @ApiResponse({
     status: 200,
     description: 'Danh sách tất cả môn học',
-    type: [CourseResponseDto],
+    type: PaginatedResponseDto,
   })
-  async findAll(): Promise<CourseResponseDto[]> {
-    const courses = await this.courseService.findAll();
-    return plainToInstance(CourseResponseDto, courses, {
-      excludeExtraneousValues: true,
-    });
+  async findAll(
+    @Query() filter: CourseFilterDto,
+  ): Promise<PaginatedResponseDto<CourseResponseDto>> {
+    return this.courseService.findAll(filter);
   }
 
   @Get(':id')

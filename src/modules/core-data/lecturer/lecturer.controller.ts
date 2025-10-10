@@ -9,16 +9,25 @@ import {
   Put,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { LecturerService } from './lecturer.service';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 import { LecturerResponseDto } from './dto/lecturer-response.dto';
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
 import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
 import { Permissions } from 'src/common/decorators/permissions.decorator';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { LecturerFilterDto } from './dto/lecturer-filter.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard, PermissionGuard)
@@ -29,16 +38,21 @@ export class LecturerController {
 
   @Get()
   @Permissions('manage_lecturers:lecturers')
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'lecturerCode', required: false, type: String })
+  @ApiQuery({ name: 'fullName', required: false, type: String })
+  @ApiQuery({ name: 'email', required: false, type: String })
+  @ApiQuery({ name: 'departmentId', required: false, type: Number })
   @ApiResponse({
     status: 200,
-    description: 'Danh sách tất cả hồ sơ giảng viên',
-    type: [LecturerResponseDto],
+    description: 'Danh sách giảng viên có phân trang và lọc',
+    type: PaginatedResponseDto,
   })
-  async findAll(): Promise<LecturerResponseDto[]> {
-    const lecturers = await this.lecturerService.findAll();
-    return plainToInstance(LecturerResponseDto, lecturers, {
-      excludeExtraneousValues: true,
-    });
+  async findAll(
+    @Query() filter: LecturerFilterDto,
+  ): Promise<PaginatedResponseDto<LecturerResponseDto>> {
+    return this.lecturerService.findAll(filter);
   }
 
   @Get(':id')

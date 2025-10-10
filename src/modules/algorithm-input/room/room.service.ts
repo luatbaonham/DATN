@@ -8,6 +8,10 @@ import { Room } from './entities/room.entity';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { Locations } from '../location/entities/locations.entity';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { plainToInstance } from 'class-transformer';
+import { RoomFilterDto } from './dto/room-filter.dto';
+import { RoomResponseDto } from './dto/room-ressponse.dto';
 
 @Injectable()
 export class RoomsService {
@@ -45,8 +49,75 @@ export class RoomsService {
     };
   }
 
-  async findAll(): Promise<Room[]> {
-    return this.em.find(Room, {});
+  // 🟡 Lấy danh sách phòng có filter
+  async findAll(
+    filter: RoomFilterDto,
+  ): Promise<PaginatedResponseDto<RoomResponseDto>> {
+    const {
+      page = 1,
+      limit = 10,
+      code,
+      locationName,
+      capacity_min,
+      capacity_max,
+    } = filter;
+
+    const offset = (page - 1) * limit;
+
+    // ⚙️ Base Query
+    const qb = this.em
+      .createQueryBuilder(Room, 'r')
+      .leftJoinAndSelect('r.location', 'l');
+
+    // 🔍 Lọc theo mã phòng
+    if (code) {
+      qb.andWhere(`LOWER(r.code) LIKE LOWER(?)`, [`%${code}%`]);
+    }
+
+    // 📍 Lọc theo tên địa điểm
+    if (locationName) {
+      qb.andWhere(`LOWER(l.name) LIKE LOWER(?)`, [`%${locationName}%`]);
+    }
+
+    // 👥 Lọc theo sức chứa
+    if (capacity_min && capacity_max) {
+      qb.andWhere(`r.capacity BETWEEN ? AND ?`, [capacity_min, capacity_max]);
+    } else if (capacity_min) {
+      qb.andWhere(`r.capacity >= ?`, [capacity_min]);
+    } else if (capacity_max) {
+      qb.andWhere(`r.capacity <= ?`, [capacity_max]);
+    }
+
+    // 🧭 Sắp xếp + Phân trang
+    qb.orderBy({ 'r.createAt': 'DESC' }).limit(limit).offset(offset);
+
+    // ⚡ Lấy dữ liệu
+    const [rooms, total] = await qb.getResultAndCount();
+
+    // 🔄 Map dữ liệu sang DTO (RoomResponseDto)
+    const data = rooms.map((r) => ({
+      id: r.id,
+      code: r.code,
+      capacity: r.capacity,
+      type: r.type,
+      is_active: r.is_active,
+      location: r.location
+        ? {
+            id: r.location.id,
+            name: r.location.name,
+            address: r.location.address,
+          }
+        : null,
+      createAt: r.createAt,
+      updateAt: r.updateAt,
+    }));
+
+    const mapped = plainToInstance(RoomResponseDto, data, {
+      excludeExtraneousValues: true,
+    });
+
+    // 📦 Trả về dạng chuẩn
+    return PaginatedResponseDto.from(mapped, page, limit, total);
   }
 
   async findOne(id: number): Promise<Room> {

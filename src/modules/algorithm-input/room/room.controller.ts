@@ -7,13 +7,16 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { RoomsService } from './room.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { RoomResponseDto } from './dto/room-ressponse.dto';
 import { plainToInstance } from 'class-transformer';
-import { ApiTags, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { RoomFilterDto } from './dto/room-filter.dto';
 
 @ApiTags('rooms')
 @Controller('rooms')
@@ -31,12 +34,17 @@ export class RoomsController {
   }
 
   @Get()
-  @ApiResponse({ status: 200, type: [RoomResponseDto] })
-  async findAll(): Promise<RoomResponseDto[]> {
-    const rooms = await this.service.findAll();
-    return plainToInstance(RoomResponseDto, rooms, {
-      excludeExtraneousValues: true,
-    });
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'code', required: false, type: String })
+  @ApiQuery({ name: 'locationName', required: false, type: String })
+  @ApiQuery({ name: 'capacity_min', required: false, type: Number })
+  @ApiQuery({ name: 'capacity_max', required: false, type: Number })
+  @ApiResponse({ status: 200, type: PaginatedResponseDto })
+  async findAll(
+    @Query() filter: RoomFilterDto,
+  ): Promise<PaginatedResponseDto<RoomResponseDto>> {
+    return this.service.findAll(filter);
   }
 
   @Get(':id')

@@ -7,13 +7,16 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { LocationsService } from './locations.service';
 import { CreateLocationDto } from './dto/create-locations.dto';
 import { UpdateLocationsDto } from './dto/update-locations.dto';
 import { LocationResponseDto } from './dto/locations-response.dto';
 import { plainToInstance } from 'class-transformer';
-import { ApiTags, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { LocationsFilterDto } from './dto/locations-filter.dto';
 
 @ApiTags('locations')
 @Controller('locations')
@@ -31,12 +34,15 @@ export class LocationsController {
   }
 
   @Get()
-  @ApiResponse({ status: 200, type: [LocationResponseDto] })
-  async findAll(): Promise<LocationResponseDto[]> {
-    const locations = await this.service.findAll();
-    return plainToInstance(LocationResponseDto, locations, {
-      excludeExtraneousValues: true,
-    });
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'code', required: false, type: String })
+  @ApiQuery({ name: 'name', required: false, type: String })
+  @ApiResponse({ status: 200, type: PaginatedResponseDto })
+  async findAll(
+    @Query() filter: LocationsFilterDto,
+  ): Promise<PaginatedResponseDto<LocationResponseDto>> {
+    return this.service.findAll(filter);
   }
 
   @Get(':id')
