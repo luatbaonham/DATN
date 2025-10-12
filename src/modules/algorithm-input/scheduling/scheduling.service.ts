@@ -132,7 +132,10 @@ export class SchedulingService {
 
   private initializePopulation(): Chromosome[] {
     const population: Chromosome[] = [];
-    const subjectIds = Array.from(this.subjectsById.keys());
+    // <<< SỬA LỖI Ở ĐÂY
+    // Thay vì: const subjectIds = Array.from(this.subjectsById.keys());
+    // Hãy lấy danh sách môn học có sinh viên đăng ký:
+    const subjectIds = Array.from(this.studentsBySubject.keys());
 
     for (let i = 0; i < POPULATION_SIZE; i++) {
       const chromosome: Chromosome = subjectIds.map((subjectId) => ({
