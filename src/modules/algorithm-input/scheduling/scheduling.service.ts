@@ -15,7 +15,19 @@ type Gene = {
   proctorId: string;
 };
 type Chromosome = Gene[];
-
+type ExamDetails = {
+  time: string;
+  subject: string;
+  duration: number;
+  room: string;
+  location: string;
+  proctor: string;
+  studentCount: number;
+  students: string[];
+};
+type SessionSchedule = {
+  [roomId: string]: ExamDetails[];
+};
 // Định nghĩa kíp thi
 type TimeSlot = {
   id: number;
@@ -295,28 +307,56 @@ export class SchedulingService {
 
   private formatOutput(chromosome: Chromosome | null) {
     if (!chromosome) {
-      return { error: 'Không thể tạo lịch thi.' };
+      return {
+        fitness: Infinity,
+        isOptimal: false,
+        error: 'Không thể tạo lịch thi.',
+        timetable: [], // Trả về mảng rỗng
+      };
     }
 
     const fitness = this.calculateFitness(chromosome);
     const scheduleByDay = {};
+    // Giả sử thuật toán của bạn chạy cho 6 ngày
+    const daysOfWeek = [
+      'Thứ Hai',
+      'Thứ Ba',
+      'Thứ Tư',
+      'Thứ Năm',
+      'Thứ Sáu',
+      'Thứ Bảy',
+    ];
+    const timetable = daysOfWeek.map((dayName) => ({
+      day: dayName,
+      morning: {} as SessionSchedule, // Ép kiểu đối tượng rỗng thành SessionSchedule
+      afternoon: {} as SessionSchedule, // Tương tự cho ca chiều
+    }));
 
+    // 2. Điền dữ liệu từ chromosome vào cấu trúc timetable
     chromosome.forEach((gene) => {
       const timeSlot = this.timeSlots.find((ts) => ts.id === gene.timeSlotId)!;
+
+      if (timeSlot.day < 1 || timeSlot.day > daysOfWeek.length) {
+        return;
+      }
+
       const subject = this.subjectsById.get(gene.subjectId)!;
       const room = this.rooms.find((r) => r.roomId === gene.roomId)!;
       const students = this.studentsBySubject.get(gene.subjectId)!;
+      const sessionKey = timeSlot.start < 12 * 60 ? 'morning' : 'afternoon';
+      const daySchedule = timetable[timeSlot.day - 1];
+      const sessionSchedule = daySchedule[sessionKey];
 
-      const dayKey = `Ngày ${timeSlot.day}`;
-      if (!scheduleByDay[dayKey]) {
-        scheduleByDay[dayKey] = [];
+      if (!sessionSchedule[gene.roomId]) {
+        sessionSchedule[gene.roomId] = [];
       }
 
       const startTime = `${Math.floor(timeSlot.start / 60)}:${('0' + (timeSlot.start % 60)).slice(-2)}`;
       const endTimeMinutes = timeSlot.start + subject.duration;
       const endTime = `${Math.floor(endTimeMinutes / 60)}:${('0' + (endTimeMinutes % 60)).slice(-2)}`;
 
-      scheduleByDay[dayKey].push({
+      // <<< SỬA LỖI: GÁN KIỂU DỮ LIỆU RÕ RÀNG CHO examDetails
+      const examDetails: ExamDetails = {
         time: `${startTime} - ${endTime}`,
         subject: gene.subjectId,
         duration: subject.duration,
@@ -325,18 +365,27 @@ export class SchedulingService {
         proctor: gene.proctorId,
         studentCount: students.length,
         students: students,
-      });
+      };
+
+      sessionSchedule[gene.roomId].push(examDetails);
     });
 
-    // Sắp xếp các ca thi trong ngày theo thời gian bắt đầu
-    Object.keys(scheduleByDay).forEach((dayKey) => {
-      scheduleByDay[dayKey].sort((a, b) => a.time.localeCompare(b.time));
+    // Bây giờ TypeScript đã biết roomExams là ExamDetails[], nên không còn lỗi
+    timetable.forEach((day) => {
+      // Object.values(day.morning) giờ trả về ExamDetails[][]
+      // => roomExams giờ là ExamDetails[]
+      Object.values(day.morning).forEach((roomExams) =>
+        roomExams.sort((a, b) => a.time.localeCompare(b.time)),
+      );
+      Object.values(day.afternoon).forEach((roomExams) =>
+        roomExams.sort((a, b) => a.time.localeCompare(b.time)),
+      );
     });
 
     return {
       fitness,
       isOptimal: fitness === 0,
-      schedule: scheduleByDay,
+      timetable: timetable,
     };
   }
 }
