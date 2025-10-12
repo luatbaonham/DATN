@@ -36,12 +36,12 @@ export class UserResponseDto {
     description: 'Thời gian tạo người dùng',
   })
   @Expose()
-  createAt?: Date;
+  createdAt?: Date;
 
   @ApiProperty({
     example: '2023-10-11T10:00:00Z',
     description: 'Thời gian cập nhật người dùng gần nhất',
   })
   @Expose()
-  updateAt?: Date;
+  updatedAt?: Date;
 }

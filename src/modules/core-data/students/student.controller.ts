@@ -42,7 +42,7 @@ export class StudentController {
   @ApiQuery({ name: 'studentCode', required: false, type: String })
   @ApiQuery({ name: 'fullName', required: false, type: String })
   @ApiQuery({ name: 'email', required: false, type: String })
-  @ApiQuery({ name: 'classId', required: false, type: Number })
+  @ApiQuery({ name: 'className', required: false, type: String })
   @ApiQuery({ name: 'gender', required: false, type: String })
   @ApiResponse({
     status: 200,

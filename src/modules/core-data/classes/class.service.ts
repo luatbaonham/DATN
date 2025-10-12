@@ -62,7 +62,7 @@ export class ClassService {
     }
 
     // --- Sắp xếp, phân trang ---
-    qb.orderBy({ 'c.createAt': 'DESC' }).limit(limit).offset(offset);
+    qb.orderBy({ createdAt: 'DESC' }).limit(limit).offset(offset);
 
     // --- Lấy kết quả và tổng ---
     const [data, total] = await qb.getResultAndCount();

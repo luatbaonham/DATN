@@ -23,11 +23,19 @@ export class LecturerFilterDto {
   @IsString()
   lecturerCode?: string;
 
-  @ApiProperty({ required: false, description: 'ID Khoa cần lọc' })
+  // @ApiProperty({ required: false, description: 'ID Khoa cần lọc' })
+  // @IsOptional()
+  // @Type(() => Number)
+  // @IsNumber()
+  // departmentId?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Giới tính cần lọc',
+  })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  departmentId?: number;
+  @IsString()
+  gender?: string;
 
   @ApiProperty({
     required: false,

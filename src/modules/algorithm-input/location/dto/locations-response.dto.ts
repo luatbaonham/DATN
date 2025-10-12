@@ -37,7 +37,7 @@ export class LocationResponseDto {
     readOnly: true,
   })
   @Expose()
-  createAt?: Date;
+  createdAt?: Date;
 
   @ApiProperty({
     description: 'Thời điểm cập nhật',
@@ -45,5 +45,5 @@ export class LocationResponseDto {
     readOnly: true,
   })
   @Expose()
-  updateAt?: Date;
+  updatedAt?: Date;
 }

@@ -20,15 +20,15 @@ export class Classes {
   @Property()
   classCode!: string;
 
-  @OneToMany(() => Student, (student) => student.class)
+  @OneToMany(() => Student, (student) => student.classes)
   student = new Collection<Student>(this);
 
   @ManyToOne(() => Department)
   department!: Department;
 
   @Property({ onCreate: () => new Date() })
-  createAt?: Date;
+  createdAt?: Date;
 
   @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
-  updateAt?: Date;
+  updatedAt?: Date;
 }

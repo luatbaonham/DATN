@@ -1,6 +1,7 @@
 // student-response.dto.ts
+import { UserResponseDto } from '@modules/identity/users/dto/user-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Transform } from 'class-transformer';
+import { Exclude, Expose, Transform, Type } from 'class-transformer';
 
 @Exclude()
 export class StudentResponseDto {
@@ -50,6 +51,25 @@ export class StudentResponseDto {
   })
   @Expose()
   phoneNumber?: string;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Thông tin lớp học',
+    example: { id: 1, classCode: 'D1', className: 'CNTT D1' },
+  })
+  classes!: {
+    id: number;
+    classCode: string;
+    className: string;
+  };
+
+  @Expose()
+  @Type(() => UserResponseDto)
+  @ApiProperty({
+    description: 'Thông tin người dùng',
+    type: UserResponseDto,
+  })
+  user!: UserResponseDto;
 
   @ApiProperty({
     description: 'Ngày tạo bản ghi',

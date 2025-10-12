@@ -62,7 +62,7 @@ export class DepartmentService {
       ]);
     }
 
-    qb.orderBy({ createAt: 'DESC' }).limit(limit).offset(offset);
+    qb.orderBy({ createdAt: 'DESC' }).limit(limit).offset(offset);
 
     const [data, total] = await qb.getResultAndCount();
 

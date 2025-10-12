@@ -45,7 +45,7 @@ export class UserController {
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'fullName', required: false, type: String })
+  @ApiQuery({ name: 'fullName', required: false, type: String }) //sẽ phải soi qua 2 bảng sv, gv
   @ApiQuery({ name: 'email', required: false, type: String })
   @Permissions('manage_users:users')
   @ApiOperation({

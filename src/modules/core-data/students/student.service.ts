@@ -11,15 +11,18 @@ import { User } from '@modules/identity/users/entities/user.entity';
 import { Classes } from '@modules/core-data/classes/entities/class.entity';
 import { StudentResponseDto } from './dto/student-response.dto';
 import { plainToInstance } from 'class-transformer';
+import * as bcrypt from 'bcrypt';
 import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { StudentFilterDto } from './dto/student-filter.dto';
+import { UserRole } from '@modules/identity/users/entities/user-role.entity';
+import { Role } from '@modules/identity/roles-permissions/entities/role.entity';
 
 @Injectable()
 export class StudentService {
   constructor(private readonly em: EntityManager) {}
 
   async create(dto: CreateStudentDto): Promise<Student> {
-    // check trùng mã sinh viên
+    // 1️⃣ Kiểm tra trùng mã sinh viên
     const existCode = await this.em.findOne(Student, {
       studentCode: dto.studentCode,
     });
@@ -27,98 +30,93 @@ export class StudentService {
       throw new ConflictException('Mã sinh viên đã tồn tại!');
     }
 
-    let user: User | undefined;
-    if (dto.userId) {
-      user = (await this.em.findOne(User, { id: dto.userId })) ?? undefined;
-      if (!user) {
-        throw new NotFoundException('Không tìm thấy user để gắn vào sinh viên');
-      }
-
-      // check nếu user này đã có hồ sơ student khác
-      const existedStudent = await this.em.findOne(Student, { user });
-      if (existedStudent) {
-        throw new ConflictException('User này đã được gắn với sinh viên khác!');
-      }
+    // 2️⃣ Kiểm tra lớp tồn tại
+    const classEntity = await this.em.findOne(Classes, { id: dto.classId });
+    if (!classEntity) {
+      throw new NotFoundException('Không tìm thấy lớp học!');
     }
 
+    // 3️⃣ Xử lý user (tự tạo nếu không có)
+    let user: User;
+    if (dto.userId) {
+      user = await this.em.findOneOrFail(User, { id: dto.userId });
+      const existedStudent = await this.em.findOne(Student, { user });
+      if (existedStudent)
+        throw new ConflictException('User đã gắn với sinh viên khác!');
+    } else {
+      const defaultEmail = `${dto.studentCode.toLowerCase()}@edu.ptithcm.vn`;
+      const defaultPassword = dto.studentCode;
+      user = this.em.create(User, {
+        email: defaultEmail,
+        password: await bcrypt.hash(defaultPassword, 10),
+      });
+      await this.em.persistAndFlush(user);
+      // 🔹 Gắn role STUDENT (qua bảng UserRole)
+      const role = await this.em.findOne(Role, { name: 'SINH_VIEN' });
+      if (!role) throw new NotFoundException('Không tìm thấy role STUDENT');
+
+      const userRole = this.em.create(UserRole, {
+        user,
+        role, // ✅ Truyền entity role
+      });
+      await this.em.persistAndFlush(userRole);
+    }
+
+    // 4️⃣ Tạo sinh viên
     const student = this.em.create(Student, {
       studentCode: dto.studentCode,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       dateOfBirth: dto.dateOfBirth,
       gender: dto.gender,
       address: dto.address,
       phoneNumber: dto.phoneNumber,
       user,
+      classes: classEntity,
     });
 
     await this.em.persistAndFlush(student);
+    await this.em.populate(student, ['classes', 'user']);
     return student;
   }
 
   async findAll(
     filter: StudentFilterDto,
   ): Promise<PaginatedResponseDto<StudentResponseDto>> {
-    const {
-      page = 1,
-      limit = 10,
-      studentCode,
-      fullName,
-      email,
-      classId,
-      gender,
-    } = filter;
+    const { page = 1, limit = 10, studentCode, gender, className } = filter;
     const offset = (page - 1) * limit;
 
     const qb = this.em
       .createQueryBuilder(Student, 's')
       .leftJoinAndSelect('s.user', 'u')
-      .leftJoinAndSelect('s.class', 'c');
+      .leftJoinAndSelect('s.classes', 'c');
 
-    // Lọc theo mã SV
-    if (studentCode) {
-      qb.andWhere({ studentCode: { $ilike: `%${studentCode}%` } });
-    }
+    if (studentCode)
+      qb.andWhere({ studentCode: { $like: `%${studentCode}%` } });
+    if (gender) qb.andWhere({ gender });
+    if (className) qb.andWhere({ 'c.className': { $like: `%${className}%` } });
 
-    // Lọc theo giới tính
-    if (gender) {
-      qb.andWhere({ gender });
-    }
-
-    // Lọc theo lớp
-    if (classId) {
-      qb.andWhere({ class: classId });
-    }
-
-    // Lọc theo họ tên (ghép họ + tên)
-    if (fullName && fullName.trim() !== '') {
-      qb.andWhere(
-        `LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(?)`,
-        [`%${fullName}%`],
-      );
-    }
-
-    // Lọc theo email (nằm trong entity User)
-    if (email && email.trim() !== '') {
-      // qb.andWhere('u.email ILIKE ?', [`%${email}%`]); này là dùng cho postgres,
-      qb.andWhere('LOWER(u.email) LIKE LOWER(?)', [`%${email}%`]); //này tương đương ILIKE, nhưng dùng đc cho Postgres, MySQL, SQLite.
-      //ILIKE chỉ dùng đc cho postgres, còn mysql thì dùng LIKE
-    }
-
-    qb.orderBy({ 's.createAt': 'DESC' }).limit(limit).offset(offset);
+    qb.orderBy({ 's.createdAt': 'DESC' }).limit(limit).offset(offset);
 
     const [students, total] = await qb.getResultAndCount();
 
     const formatted = students.map((s) => ({
       id: s.id,
       studentCode: s.studentCode,
-      firstName: s.user?.firstName ?? '',
-      lastName: s.user?.lastName ?? '',
+      firstName: s.firstName,
+      lastName: s.lastName,
       email: s.user?.email ?? '',
       dateOfBirth: s.dateOfBirth,
       gender: s.gender,
       address: s.address,
       phoneNumber: s.phoneNumber,
-      createdAt: s.createAt,
-      updatedAt: s.updateAt,
+      classes: {
+        id: s.classes.id,
+        classCode: s.classes.classCode,
+        className: s.classes.className,
+      },
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
     }));
 
     const mapped = plainToInstance(StudentResponseDto, formatted, {
@@ -129,7 +127,7 @@ export class StudentService {
   }
 
   async findOne(id: number): Promise<Student | null> {
-    return this.em.findOne(Student, { id }, { populate: ['user', 'class'] });
+    return this.em.findOne(Student, { id }, { populate: ['user', 'classes'] });
   }
 
   async update(id: number, dto: UpdateStudentDto): Promise<Student | null> {

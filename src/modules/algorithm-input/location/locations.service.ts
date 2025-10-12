@@ -42,7 +42,7 @@ export class LocationsService {
     const [locations, total] = await this.em.findAndCount(Locations, where, {
       limit,
       offset,
-      orderBy: { createAt: 'DESC' },
+      orderBy: { createdAt: 'DESC' },
     });
 
     const mapped = plainToInstance(LocationResponseDto, locations, {

@@ -58,7 +58,7 @@ export class CourseService {
     const [courses, total] = await this.em.findAndCount(Course, where, {
       limit,
       offset,
-      orderBy: { createAt: 'DESC' },
+      orderBy: { createdAt: 'DESC' },
     });
 
     // 🔄 Map sang DTO

@@ -35,11 +35,10 @@ export class StudentFilterDto {
   @IsString()
   gender?: string;
 
-  @ApiProperty({ required: false, description: 'ID lớp cần lọc' })
+  @ApiProperty({ required: false, description: 'Tên lớp cần lọc' })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  classId?: number;
+  @IsString()
+  className?: string;
 
   @ApiProperty({
     required: false,

@@ -21,6 +21,12 @@ export class Student {
   studentCode!: string;
 
   @Property()
+  firstName!: string;
+
+  @Property()
+  lastName!: string;
+
+  @Property()
   dateOfBirth!: Date;
 
   @Property()
@@ -40,8 +46,8 @@ export class Student {
   })
   user?: User;
 
-  @ManyToOne(() => Classes, { nullable: true })
-  class?: Classes;
+  @ManyToOne(() => Classes)
+  classes!: Classes;
 
   @OneToMany(() => StudentCourseRegistration, (reg) => reg.student)
   registrations = new Collection<StudentCourseRegistration>(this);
@@ -50,8 +56,8 @@ export class Student {
   examGroups = new Collection<StudentExamGroup>(this);
 
   @Property({ onCreate: () => new Date() })
-  createAt?: Date;
+  createdAt?: Date;
 
   @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
-  updateAt?: Date;
+  updatedAt?: Date;
 }

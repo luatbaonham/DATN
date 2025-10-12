@@ -27,6 +27,18 @@ export class ResponseInterceptor<T>
     return next.handle().pipe(
       map((result: any) => {
         const statusCode = 200;
+        if (
+          result &&
+          typeof result === 'object' &&
+          'meta' in result &&
+          'data' in result
+        ) {
+          return {
+            code: statusCode,
+            data: result,
+            message: 'Action successfully.', // ✅ thêm dòng này
+          };
+        }
 
         if (result && typeof result === 'object' && 'data' in result) {
           return {

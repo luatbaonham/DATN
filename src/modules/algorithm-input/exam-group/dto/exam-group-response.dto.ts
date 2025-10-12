@@ -32,12 +32,12 @@ export class ExamGroupResponseDto {
 
   @ApiProperty({ example: '2025-10-04T10:00:00Z', description: 'Ngày tạo' })
   @Expose()
-  createAt?: Date;
+  createdAt?: Date;
 
   @ApiProperty({
     example: '2025-10-04T10:00:00Z',
     description: 'Ngày cập nhật',
   })
   @Expose()
-  updateAt?: Date;
+  updatedAt?: Date;
 }

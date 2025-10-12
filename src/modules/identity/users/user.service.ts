@@ -39,13 +39,13 @@ export class UserService {
       .leftJoinAndSelect('u.userRoles', 'ur')
       .leftJoinAndSelect('ur.role', 'r');
 
-    // 🔍 Filter
-    if (fullName) {
-      qb.andWhere(
-        `LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(?)`,
-        [`%${fullName}%`],
-      );
-    }
+    // 🔍 Filter tên thì sẽ đổi qua ở sv,gv
+    // if (fullName) {
+    //   qb.andWhere(
+    //     `LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(?)`,
+    //     [`%${fullName}%`],
+    //   );
+    // }
 
     if (email) {
       qb.andWhere(`LOWER(u.email) LIKE LOWER(?)`, [`%${email}%`]);
@@ -71,8 +71,8 @@ export class UserService {
     // 🔄 Map dữ liệu ra DTO
     const data = users.map((u) => ({
       id: u.id,
-      firstName: u.firstName,
-      lastName: u.lastName,
+      // firstName: u.firstName,
+      // lastName: u.lastName,
       email: u.email,
       roles:
         u.userRoles
@@ -83,8 +83,8 @@ export class UserService {
             name: ur.role!.name,
             description: ur.role!.description,
           })) ?? [],
-      createAt: u.createAt,
-      updateAt: u.updateAt,
+      createAt: u.createdAt,
+      updateAt: u.updatedAt,
     }));
 
     const mapped = plainToInstance(UserResponseDto, data, {
@@ -136,7 +136,9 @@ export class UserService {
     const user = await this.em.findOne(
       User,
       { id: userId },
-      { populate: ['userRoles.role', 'student.class', 'lecturer.department'] },
+      {
+        populate: ['userRoles.role', 'student.classes', 'lecturer.department'],
+      },
     );
 
     if (!user) throw new NotFoundException('Không tìm thấy người dùng');
@@ -146,8 +148,8 @@ export class UserService {
     const baseProfile = {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      // firstName: user.firstName,
+      // lastName: user.lastName,
       roles,
     };
 
@@ -159,7 +161,7 @@ export class UserService {
         gender: user.student.gender,
         address: user.student.address,
         phoneNumber: user.student.phoneNumber,
-        class: user.student.class?.className,
+        class: user.student.classes?.className,
       };
     }
 

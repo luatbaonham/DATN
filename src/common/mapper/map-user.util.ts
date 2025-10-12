@@ -5,8 +5,8 @@ import { User } from '@modules/identity/users/entities/user.entity';
 export function mapUser(user: User): Partial<UserResponseDto> {
   return {
     id: user.id,
-    firstName: user.firstName,
-    lastName: user.lastName,
+    // firstName: user.firstName,
+    // lastName: user.lastName,
     email: user.email,
     roles:
       user.userRoles?.map((ur) => ({
@@ -14,7 +14,7 @@ export function mapUser(user: User): Partial<UserResponseDto> {
         name: ur.role.name,
         description: ur.role.description,
       })) ?? [],
-    createAt: user.createAt,
-    updateAt: user.updateAt,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 }

@@ -21,8 +21,8 @@ export class StudentCourseRegistration {
   is_active!: boolean;
 
   @Property({ onCreate: () => new Date() })
-  createAt?: Date;
+  createdAt?: Date;
 
   @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
-  updateAt?: Date;
+  updatedAt?: Date;
 }

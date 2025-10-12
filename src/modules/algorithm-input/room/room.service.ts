@@ -38,8 +38,8 @@ export class RoomsService {
       capacity: room.capacity,
       type: room.type,
       is_active: room.is_active,
-      createAt: room.createAt,
-      updateAt: room.updateAt,
+      createdAt: room.createdAt,
+      updatedAt: room.updatedAt,
       location: {
         id: location.id,
         code: location.code,
@@ -108,8 +108,8 @@ export class RoomsService {
             address: r.location.address,
           }
         : null,
-      createAt: r.createAt,
-      updateAt: r.updateAt,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
     }));
 
     const mapped = plainToInstance(RoomResponseDto, data, {

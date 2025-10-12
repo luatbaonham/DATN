@@ -32,12 +32,12 @@ export class RoomResponseDto {
     example: '2025-10-01T08:00:00.000Z',
   })
   @Expose()
-  createAt?: Date;
+  createdAt?: Date;
 
   @ApiProperty({
     description: 'Ngày cập nhật bản ghi',
     example: '2025-10-01T08:00:00.000Z',
   })
   @Expose()
-  updateAt!: Date;
+  updatedAt!: Date;
 }

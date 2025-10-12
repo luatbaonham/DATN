@@ -12,7 +12,46 @@ export class LecturerResponseDto {
 
   @ApiProperty({ example: 'GV001', description: 'Mã giảng viên' })
   @Expose()
-  code!: string;
+  lecturerCode!: string;
+
+  @ApiProperty({ description: 'Họ giảng viên', example: 'Nguyễn' })
+  @Expose()
+  firstName!: string;
+
+  @ApiProperty({ description: 'Tên giảng viên', example: 'An' })
+  @Expose()
+  lastName!: string;
+
+  @ApiProperty({
+    description: 'Email giảng viên',
+    example: 'an.nguyen@example.com',
+  })
+  @Expose()
+  email!: string;
+
+  @ApiProperty({ description: 'Ngày sinh', example: '2002-05-20' })
+  @Expose()
+  dateOfBirth!: Date;
+
+  @ApiProperty({ description: 'Giới tính', example: 'male' })
+  @Expose()
+  gender!: string;
+
+  @ApiProperty({
+    description: 'Địa chỉ',
+    example: '123 Đường ABC, Hà Nội',
+    required: false,
+  })
+  @Expose()
+  address?: string;
+
+  @ApiProperty({
+    description: 'Số điện thoại',
+    example: '0912345678',
+    required: false,
+  })
+  @Expose()
+  phoneNumber?: string;
 
   @Expose()
   @Type(() => UserResponseDto)

@@ -3,10 +3,26 @@ import { PermissionSeeder } from './permission.seeder';
 import { EntityManager } from '@mikro-orm/core';
 import { UserSeeder } from './user.seeder';
 import { UserAdminSeeder } from './user-admin.seeder';
+import { LocationSeeder } from './location.seeder';
+import { DepartmentSeeder } from './department.seeder';
+import { ClassSeeder } from './class.seeder';
+import { RoomSeeder } from './room.seed';
+import { StudentSeeder } from './student.seeder';
+import { LecturerSeeder } from './lecturer.seeder';
 
 export class Dbseeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
-    await this.call(em, [PermissionSeeder, UserSeeder, UserAdminSeeder]);
+    await this.call(em, [
+      PermissionSeeder,
+      UserSeeder,
+      UserAdminSeeder,
+      LocationSeeder,
+      DepartmentSeeder,
+      ClassSeeder,
+      RoomSeeder,
+      StudentSeeder,
+      LecturerSeeder,
+    ]);
   }
 }
 // chạy lệnh: npx mikro-orm seeder:run

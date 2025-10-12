@@ -43,7 +43,6 @@ export class LecturerController {
   @ApiQuery({ name: 'lecturerCode', required: false, type: String })
   @ApiQuery({ name: 'fullName', required: false, type: String })
   @ApiQuery({ name: 'email', required: false, type: String })
-  @ApiQuery({ name: 'departmentId', required: false, type: Number })
   @ApiResponse({
     status: 200,
     description: 'Danh sách giảng viên có phân trang và lọc',

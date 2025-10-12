@@ -8,6 +8,7 @@ import {
   Param,
   ParseIntPipe,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { RoomsService } from './room.service';
 import { CreateRoomDto } from './dto/create-room.dto';

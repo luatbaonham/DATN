@@ -18,11 +18,11 @@ export class User {
   @PrimaryKey()
   id!: number;
 
-  @Property()
-  firstName!: string;
+  // @Property()
+  // firstName!: string;
 
-  @Property()
-  lastName!: string;
+  // @Property()
+  // lastName!: string;
 
   @Property()
   email!: string;
@@ -47,8 +47,8 @@ export class User {
   location?: Locations;
 
   @Property({ onCreate: () => new Date() })
-  createAt?: Date;
+  createdAt?: Date;
 
   @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
-  updateAt?: Date;
+  updatedAt?: Date;
 }

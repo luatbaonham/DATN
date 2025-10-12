@@ -31,9 +31,9 @@ export class StudentCourseRegistrationResponseDto {
 
   @Expose()
   @ApiProperty({ example: '2025-09-29T08:00:00.000Z' })
-  createAt?: Date;
+  createdAt?: Date;
 
   @Expose()
   @ApiProperty({ example: '2025-09-29T08:00:00.000Z' })
-  updateAt?: Date;
+  updatedAt?: Date;
 }

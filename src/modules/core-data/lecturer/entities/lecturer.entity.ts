@@ -17,6 +17,24 @@ export class Lecturer {
   @Unique()
   lecturerCode!: string;
 
+  @Property()
+  firstName!: string;
+
+  @Property()
+  lastName!: string;
+
+  @Property()
+  dateOfBirth!: Date;
+
+  @Property()
+  gender!: string; // "male" | "female" | "other"
+
+  @Property()
+  address?: string;
+
+  @Property()
+  phoneNumber?: string;
+
   @OneToOne(() => User, {
     owner: true,
     nullable: true,

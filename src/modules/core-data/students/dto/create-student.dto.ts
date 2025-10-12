@@ -1,10 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsEmail,
   IsDateString,
   IsOptional,
   Length,
+  IsNotEmpty,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateStudentDto {
@@ -15,6 +18,22 @@ export class CreateStudentDto {
   @IsString({ message: 'studentCode phải là chuỗi' })
   @Length(3, 20, { message: 'studentCode từ 3-20 ký tự' })
   studentCode!: string;
+
+  @ApiProperty({
+    description: 'Họ của người dùng',
+    example: 'Nguyễn Đình',
+  })
+  @IsString({ message: 'Họ phải là chuỗi' })
+  @IsNotEmpty({ message: 'Họ không được để trống' })
+  firstName!: string;
+
+  @ApiProperty({
+    description: 'Tên của người dùng',
+    example: 'Luật',
+  })
+  @IsString({ message: 'Tên phải là chuỗi' })
+  @IsNotEmpty({ message: 'Tên không được để trống' })
+  lastName!: string;
 
   @ApiProperty({
     description: 'Ngày sinh (yyyy-mm-dd)',
@@ -47,6 +66,11 @@ export class CreateStudentDto {
   @IsOptional()
   @IsString()
   phoneNumber?: string;
+
+  @ApiProperty({ description: 'ID lớp học', example: 1 })
+  @Type(() => Number)
+  @IsNumber()
+  classId!: number;
 
   @ApiProperty({ required: false, description: 'ID user muốn gắn (nếu có)' })
   @IsOptional()

@@ -76,8 +76,8 @@
           "default": "true",
           "mappedType": "boolean"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -86,8 +86,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -166,8 +166,8 @@
           "length": 255,
           "mappedType": "string"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -176,8 +176,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -287,8 +287,8 @@
           "length": null,
           "mappedType": "integer"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -297,8 +297,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -413,8 +413,8 @@
           "length": null,
           "mappedType": "integer"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -423,8 +423,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -550,8 +550,8 @@
           "length": null,
           "mappedType": "integer"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -560,8 +560,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -654,8 +654,8 @@
           "length": null,
           "mappedType": "integer"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -664,8 +664,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -858,8 +858,8 @@
           "length": 255,
           "mappedType": "string"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -868,8 +868,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1047,8 +1047,8 @@
           "length": null,
           "mappedType": "integer"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1057,8 +1057,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1131,26 +1131,6 @@
           "length": null,
           "mappedType": "integer"
         },
-        "first_name": {
-          "name": "first_name",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 255,
-          "mappedType": "string"
-        },
-        "last_name": {
-          "name": "last_name",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 255,
-          "mappedType": "string"
-        },
         "email": {
           "name": "email",
           "type": "varchar(255)",
@@ -1181,8 +1161,8 @@
           "length": null,
           "mappedType": "integer"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1191,8 +1171,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1266,6 +1246,26 @@
           "length": 255,
           "mappedType": "string"
         },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
         "date_of_birth": {
           "name": "date_of_birth",
           "type": "datetime",
@@ -1316,18 +1316,18 @@
           "length": null,
           "mappedType": "integer"
         },
-        "class_id": {
-          "name": "class_id",
+        "classes_id": {
+          "name": "classes_id",
           "type": "int",
           "unsigned": true,
           "autoincrement": false,
           "primary": false,
-          "nullable": true,
+          "nullable": false,
           "length": null,
           "mappedType": "integer"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1336,8 +1336,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1371,10 +1371,10 @@
         },
         {
           "columnNames": [
-            "class_id"
+            "classes_id"
           ],
           "composite": false,
-          "keyName": "student_class_id_index",
+          "keyName": "student_classes_id_index",
           "constraint": false,
           "primary": false,
           "unique": false
@@ -1406,10 +1406,10 @@
           "deleteRule": "set null",
           "updateRule": "cascade"
         },
-        "student_class_id_foreign": {
-          "constraintName": "student_class_id_foreign",
+        "student_classes_id_foreign": {
+          "constraintName": "student_classes_id_foreign",
           "columnNames": [
-            "class_id"
+            "classes_id"
           ],
           "localTableName": "student",
           "referencedColumnNames": [
@@ -1417,7 +1417,6 @@
           ],
           "referencedTableName": "classes",
           "createForeignKeyConstraint": true,
-          "deleteRule": "set null",
           "updateRule": "cascade"
         }
       },
@@ -1584,8 +1583,8 @@
           "default": "true",
           "mappedType": "boolean"
         },
-        "create_at": {
-          "name": "create_at",
+        "created_at": {
+          "name": "created_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1594,8 +1593,8 @@
           "length": null,
           "mappedType": "datetime"
         },
-        "update_at": {
-          "name": "update_at",
+        "updated_at": {
+          "name": "updated_at",
           "type": "datetime",
           "unsigned": false,
           "autoincrement": false,
@@ -1850,6 +1849,66 @@
         },
         "lecturer_code": {
           "name": "lecturer_code",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "date_of_birth": {
+          "name": "date_of_birth",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        },
+        "gender": {
+          "name": "gender",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "address": {
+          "name": "address",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "phone_number": {
+          "name": "phone_number",
           "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
