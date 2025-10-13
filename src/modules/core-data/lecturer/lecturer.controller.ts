@@ -10,7 +10,14 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import * as fs from 'fs';
 import { LecturerService } from './lecturer.service';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
@@ -21,6 +28,7 @@ import {
   ApiQuery,
   ApiResponse,
   ApiTags,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
@@ -113,5 +121,95 @@ export class LecturerController {
   ): Promise<{ success: boolean }> {
     const result = await this.lecturerService.remove(id);
     return { success: result };
+  }
+
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `lecturers-${uniqueSuffix}${ext}`);
+        },
+      }),
+      fileFilter: (req, file, callback) => {
+        if (!file.originalname.match(/\.(xlsx|xls|csv)$/)) {
+          return callback(
+            new BadRequestException('Chỉ chấp nhận file Excel (.xlsx, .xls)'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Upload file giảng viên thành công',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        filename: { type: 'string' },
+        path: { type: 'string' },
+        size: { type: 'number' },
+        imported: { type: 'number' },
+        failed: { type: 'number' },
+        errors: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              row: { type: 'number' },
+              error: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+  })
+  async uploadLecturers(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Không tìm thấy file upload');
+    }
+
+    try {
+      const result = await this.lecturerService.importFromExcel(file.path);
+
+      return {
+        message: 'Upload file giảng viên thành công',
+        filename: file.originalname,
+        path: file.path,
+        size: file.size,
+        ...result,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Lỗi khi xử lý file upload';
+      throw new BadRequestException(errorMessage);
+    } finally {
+      // Clean up uploaded file
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    }
   }
 }
