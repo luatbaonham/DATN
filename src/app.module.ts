@@ -21,6 +21,9 @@ import { ExamGroupsModule } from '@modules/algorithm-input/exam-group/exam-group
 import { LocationsModule } from '@modules/algorithm-input/location/locations.module';
 import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling.module';
 import { ConstraintModule } from '@modules/constraints/constraint.module';
+import { ExamModule } from '@modules/result/exam/exam.module';
+import { ExamRegistrationModule } from '@modules/result/exam-registration/exam-registration.module';
+import { ExamSlotModule } from '@modules/result/exam-slot/exam-slot.module';
 @Module({
   imports: [
     MikroOrmModule.forRoot(config),
@@ -48,6 +51,10 @@ import { ConstraintModule } from '@modules/constraints/constraint.module';
     //
     SchedulingModule,
     ConstraintModule,
+    //
+    ExamModule,
+    ExamSlotModule,
+    ExamRegistrationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

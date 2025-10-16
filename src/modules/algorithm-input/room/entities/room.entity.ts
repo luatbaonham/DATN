@@ -1,5 +1,13 @@
-import { Entity, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
+import {
+  Collection,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/core';
 import { Locations } from '@modules/algorithm-input/location/entities/locations.entity';
+import { Exam } from '@modules/result/exam/entities/exam.entity';
 
 @Entity({ tableName: 'rooms' })
 export class Room {
@@ -20,6 +28,9 @@ export class Room {
 
   @ManyToOne(() => Locations)
   location!: Locations;
+
+  @OneToMany(() => Exam, (exam) => exam.room)
+  exam = new Collection<Exam>(this);
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;

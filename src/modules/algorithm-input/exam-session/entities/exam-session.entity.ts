@@ -9,6 +9,8 @@ import {
 import { ExamGroup } from '@modules/algorithm-input/exam-group/entities/exam-group.entity';
 import { Locations } from '@modules/algorithm-input/location/entities/locations.entity';
 import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
+import { ExamSlot } from '@modules/result/exam-slot/entities/exam-slot.entity';
+import { Exam } from '@modules/result/exam/entities/exam.entity';
 
 @Entity({ tableName: 'exam_sessions' })
 export class ExamSession {
@@ -38,6 +40,12 @@ export class ExamSession {
 
   @OneToMany(() => StudentCourseRegistration, (scr) => scr.examSession)
   registrations = new Collection<StudentCourseRegistration>(this);
+
+  @OneToMany(() => ExamSlot, (examSlot) => examSlot.examSession)
+  examSlot = new Collection<ExamSlot>(this);
+
+  @OneToMany(() => Exam, (exam) => exam.examSession)
+  exam = new Collection<Exam>(this);
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;

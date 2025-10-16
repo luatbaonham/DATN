@@ -5,9 +5,12 @@ import {
   ManyToOne,
   OneToOne,
   Unique,
+  OneToMany,
+  Collection,
 } from '@mikro-orm/core';
 import { User } from '@modules/identity/users/entities/user.entity';
 import { Department } from '@modules/core-data/departments/entities/department.entity';
+import { ExamSupervisor } from '@modules/result/exam-supervisor/entities/exam-supervisor.entity';
 @Entity()
 export class Lecturer {
   @PrimaryKey()
@@ -48,6 +51,9 @@ export class Lecturer {
 
   @Property({ default: false })
   isSupervisor!: boolean;
+
+  @OneToMany(() => ExamSupervisor, (examSup) => examSup.lecturer)
+  examSupervisor = new Collection<ExamSupervisor>(this);
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date = new Date();

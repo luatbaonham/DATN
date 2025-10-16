@@ -11,6 +11,7 @@ import { StudentCourseRegistration } from '@modules/algorithm-input/student-cour
 import { StudentExamGroup } from '@modules/algorithm-input/student-exam-group/entities/student-exam-group.entity';
 import { Classes } from '@modules/core-data/classes/entities/class.entity';
 import { User } from '@modules/identity/users/entities/user.entity';
+import { ExamRegistration } from '@modules/result/exam-registration/entities/exam-registration.entity';
 
 @Entity()
 export class Student {
@@ -54,6 +55,9 @@ export class Student {
 
   @OneToMany(() => StudentExamGroup, (seg) => seg.student)
   examGroups = new Collection<StudentExamGroup>(this);
+
+  @OneToMany(() => ExamRegistration, (examreg) => examreg.student)
+  examRegistration = new Collection<ExamRegistration>(this);
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;

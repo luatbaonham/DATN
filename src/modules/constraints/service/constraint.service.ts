@@ -45,6 +45,16 @@ export class ConstraintService {
 
   async update(id: number, dto: UpdateConstraintDto): Promise<Constraint> {
     const constraint = await this.findOne(id);
+
+    if (dto.constraintCode) {
+      const existing = await this.em.findOne(Constraint, {
+        constraintCode: dto.constraintCode,
+      });
+      if (existing && existing.id !== id) {
+        throw new BadRequestException('Mã ràng buộc đã tồn tại');
+      }
+    }
+
     const cleanDto = Object.fromEntries(
       Object.entries(dto).filter(([_, v]) => v !== undefined),
     );
