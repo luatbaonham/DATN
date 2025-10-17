@@ -10,7 +10,11 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -21,6 +25,7 @@ import {
   ApiQuery,
   ApiResponse,
   ApiTags,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
@@ -28,6 +33,8 @@ import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
 import { Permissions } from 'src/common/decorators/permissions.decorator';
 import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { StudentFilterDto } from './dto/student-filter.dto';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard, PermissionGuard)
@@ -113,5 +120,93 @@ export class StudentController {
   ): Promise<{ success: boolean }> {
     const result = await this.studentService.remove(id);
     return { success: result };
+  }
+  /*
+Giải thích:
+FileInterceptor('file'): Middleware xử lý upload file, field name là 'file'
+diskStorage: Lưu file vào ổ đĩa (không lưu trong memory)
+filename: Custom tên file để tránh trùng lặp
+fileFilter: Validate loại file trước khi nhận
+limits: Giới hạn kích thước file
+*/
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads', // ← Thư mục lưu file
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `students-${uniqueSuffix}${ext}`);
+          // ↑ Tạo tên file unique: students-1234567890-123456789.xlsx
+        },
+      }),
+      fileFilter: (req, file, callback) => {
+        // Chỉ chấp nhận file Excel
+        if (!file.originalname.match(/\.(xlsx|xls|csv)$/)) {
+          return callback(
+            new BadRequestException('Chỉ chấp nhận file Excel (.xlsx, .xls)'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Upload file thành công',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        filename: { type: 'string' },
+        path: { type: 'string' },
+        size: { type: 'number' },
+        imported: { type: 'number' },
+        failed: { type: 'number' },
+        errors: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              row: { type: 'number' },
+              error: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+  })
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Không tìm thấy file upload');
+    }
+
+    const result = await this.studentService.importFromExcel(file.path);
+
+    return {
+      message: 'Upload file thành công',
+      filename: file.originalname,
+      path: file.path,
+      size: file.size,
+      ...result,
+    };
   }
 }

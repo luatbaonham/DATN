@@ -431,6 +431,130 @@
           "length": null,
           "mappedType": "integer"
         },
+        "exam_session_id": {
+          "name": "exam_session_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "slot_name": {
+          "name": "slot_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        }
+      },
+      "name": "exam_slot",
+      "indexes": [
+        {
+          "columnNames": [
+            "exam_session_id"
+          ],
+          "composite": false,
+          "keyName": "exam_slot_exam_session_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "PRIMARY",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "exam_slot_exam_session_id_foreign": {
+          "constraintName": "exam_slot_exam_session_id_foreign",
+          "columnNames": [
+            "exam_session_id"
+          ],
+          "localTableName": "exam_slot",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "exam_sessions",
+          "createForeignKeyConstraint": true,
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
         "code": {
           "name": "code",
           "type": "varchar(255)",
@@ -1319,6 +1443,219 @@
           "length": null,
           "mappedType": "integer"
         },
+        "exam_session_id": {
+          "name": "exam_session_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "exam_group_id": {
+          "name": "exam_group_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "room_id": {
+          "name": "room_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "exam_slot_id": {
+          "name": "exam_slot_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "exam_date": {
+          "name": "exam_date",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        },
+        "duration": {
+          "name": "duration",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        }
+      },
+      "name": "exam",
+      "indexes": [
+        {
+          "columnNames": [
+            "exam_session_id"
+          ],
+          "composite": false,
+          "keyName": "exam_exam_session_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "exam_group_id"
+          ],
+          "composite": false,
+          "keyName": "exam_exam_group_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "room_id"
+          ],
+          "composite": false,
+          "keyName": "exam_room_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "exam_slot_id"
+          ],
+          "composite": false,
+          "keyName": "exam_exam_slot_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "PRIMARY",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "exam_exam_session_id_foreign": {
+          "constraintName": "exam_exam_session_id_foreign",
+          "columnNames": [
+            "exam_session_id"
+          ],
+          "localTableName": "exam",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "exam_sessions",
+          "createForeignKeyConstraint": true,
+          "updateRule": "cascade"
+        },
+        "exam_exam_group_id_foreign": {
+          "constraintName": "exam_exam_group_id_foreign",
+          "columnNames": [
+            "exam_group_id"
+          ],
+          "localTableName": "exam",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "exam_groups",
+          "createForeignKeyConstraint": true,
+          "updateRule": "cascade"
+        },
+        "exam_room_id_foreign": {
+          "constraintName": "exam_room_id_foreign",
+          "columnNames": [
+            "room_id"
+          ],
+          "localTableName": "exam",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "rooms",
+          "createForeignKeyConstraint": true,
+          "updateRule": "cascade"
+        },
+        "exam_exam_slot_id_foreign": {
+          "constraintName": "exam_exam_slot_id_foreign",
+          "columnNames": [
+            "exam_slot_id"
+          ],
+          "localTableName": "exam",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "exam_slot",
+          "createForeignKeyConstraint": true,
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
         "email": {
           "name": "email",
           "type": "varchar(255)",
@@ -1891,6 +2228,113 @@
           "length": null,
           "mappedType": "integer"
         },
+        "exam_id": {
+          "name": "exam_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "student_id": {
+          "name": "student_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        }
+      },
+      "name": "exam_registration",
+      "indexes": [
+        {
+          "columnNames": [
+            "exam_id"
+          ],
+          "composite": false,
+          "keyName": "exam_registration_exam_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "student_id"
+          ],
+          "composite": false,
+          "keyName": "exam_registration_student_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "PRIMARY",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "exam_registration_exam_id_foreign": {
+          "constraintName": "exam_registration_exam_id_foreign",
+          "columnNames": [
+            "exam_id"
+          ],
+          "localTableName": "exam_registration",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "exam",
+          "createForeignKeyConstraint": true,
+          "updateRule": "cascade"
+        },
+        "exam_registration_student_id_foreign": {
+          "constraintName": "exam_registration_student_id_foreign",
+          "columnNames": [
+            "student_id"
+          ],
+          "localTableName": "exam_registration",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "student",
+          "createForeignKeyConstraint": true,
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
         "user_id": {
           "name": "user_id",
           "type": "int",
@@ -2228,6 +2672,123 @@
           "referencedTableName": "department",
           "createForeignKeyConstraint": true,
           "deleteRule": "set null",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "exam_id": {
+          "name": "exam_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "lecturer_id": {
+          "name": "lecturer_id",
+          "type": "int",
+          "unsigned": true,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "integer"
+        },
+        "role": {
+          "name": "role",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        }
+      },
+      "name": "exam_supervisor",
+      "indexes": [
+        {
+          "columnNames": [
+            "exam_id"
+          ],
+          "composite": false,
+          "keyName": "exam_supervisor_exam_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "lecturer_id"
+          ],
+          "composite": false,
+          "keyName": "exam_supervisor_lecturer_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "PRIMARY",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "exam_supervisor_exam_id_foreign": {
+          "constraintName": "exam_supervisor_exam_id_foreign",
+          "columnNames": [
+            "exam_id"
+          ],
+          "localTableName": "exam_supervisor",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "exam",
+          "createForeignKeyConstraint": true,
+          "updateRule": "cascade"
+        },
+        "exam_supervisor_lecturer_id_foreign": {
+          "constraintName": "exam_supervisor_lecturer_id_foreign",
+          "columnNames": [
+            "lecturer_id"
+          ],
+          "localTableName": "exam_supervisor",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "lecturer",
+          "createForeignKeyConstraint": true,
           "updateRule": "cascade"
         }
       },
