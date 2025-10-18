@@ -73,7 +73,7 @@ export class ClassService {
     });
 
     // --- Trả kết quả phân trang ---
-    return PaginatedResponseDto.from(items, total, page, limit);
+    return PaginatedResponseDto.from(items, page, limit, total);
   }
 
   async findOne(id: number): Promise<Classes | null> {

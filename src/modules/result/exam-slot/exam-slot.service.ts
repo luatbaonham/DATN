@@ -51,7 +51,7 @@ export class ExamSlotService {
       excludeExtraneousValues: true,
     });
 
-    return PaginatedResponseDto.from(items, total, page, limit);
+    return PaginatedResponseDto.from(items, page, limit, total);
   }
 
   async findOne(id: number): Promise<ExamSlot> {
@@ -88,7 +88,7 @@ export class ExamSlotService {
 
   async remove(id: number): Promise<boolean> {
     const slot = await this.em.findOne(ExamSlot, { id });
-    if (!slot) return false;
+    if (!slot) throw new NotFoundException('Không tìm thấy ca thi');
     await this.em.removeAndFlush(slot);
     return true;
   }

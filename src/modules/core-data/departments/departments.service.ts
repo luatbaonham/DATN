@@ -71,7 +71,7 @@ export class DepartmentService {
     });
 
     // --- Trả kết quả phân trang ---
-    return PaginatedResponseDto.from(items, total, page, limit);
+    return PaginatedResponseDto.from(items, page, limit, total);
   }
 
   async findOne(id: number): Promise<Department | null> {
