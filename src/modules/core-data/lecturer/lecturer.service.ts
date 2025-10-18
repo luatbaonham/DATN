@@ -1,5 +1,6 @@
 // lecturer.service.ts
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -17,10 +18,10 @@ import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
-import * as bcrypt from 'bcrypt';
 import { ImportLecturerDto } from './dto/import-lecturer.dto';
 import { Role } from '@modules/identity/roles-permissions/entities/role.entity';
 import { UserRole } from '@modules/identity/users/entities/user-role.entity';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class LecturerService {
@@ -220,37 +221,58 @@ export class LecturerService {
   async importFromExcel(filePath: string): Promise<{
     imported: number;
     failed: number;
-    errors: Array<{ row: number; error: string }>;
+    errors: Array<{ row: number; error: string; data?: any }>;
   }> {
     try {
-      // Read Excel file
+      // Đọc file Excel
       const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      const rawData: any[] = XLSX.utils.sheet_to_json(worksheet, {
+        defval: '',
+      });
 
-      const errors: Array<{ row: number; error: string }> = [];
+      if (!rawData || rawData.length === 0) {
+        throw new BadRequestException('File Excel/CSV trống hoặc không hợp lệ');
+      }
+
       let imported = 0;
       let failed = 0;
+      const errors: Array<{ row: number; error: string; data?: any }> = [];
 
-      for (let i = 0; i < jsonData.length; i++) {
-        const row = jsonData[i] as any;
-        const rowNumber = i + 2; // Excel rows start at 1, header is row 1
+      for (let i = 0; i < rawData.length; i++) {
+        const row = rawData[i];
+        const rowNumber = i + 2; // Dòng 2 trở đi (vì header là dòng 1)
 
         try {
-          // Map Excel columns to DTO
-          const dto: ImportLecturerDto = {
-            lecturerCode: row['Mã giảng viên']?.toString().trim(),
-            firstName: row['Họ']?.toString().trim(),
-            lastName: row['Tên']?.toString().trim(),
-            email: row['Email']?.toString().trim(),
-            departmentId: row['Mã khoa'] ? Number(row['Mã khoa']) : undefined,
-            isSupervisor:
-              row['Giám thị']?.toString().toLowerCase() === 'true' ||
-              row['Giám thị'] === true,
-          };
+          // 1️⃣ Map dữ liệu từ Excel → DTO
+          const dto = new ImportLecturerDto();
+          dto.lecturerCode = row['Mã giảng viên']?.toString().trim() || '';
+          dto.lastName = row['Họ']?.toString().trim() || '';
+          dto.firstName = row['Tên']?.toString().trim() || '';
+          dto.dateOfBirth = this.parseExcelDate(row['Ngày sinh']) || '';
+          dto.gender = (row['Giới tính']?.toString().toLowerCase().trim() ||
+            'male') as 'male' | 'female' | 'other';
+          dto.address = row['Địa chỉ']?.toString().trim() || '';
+          dto.phoneNumber = row['Số điện thoại']?.toString().trim() || '';
+          const isSupervisorValue =
+            row['Giám thị']?.toString().toLowerCase().trim() || 'false';
+          dto.isSupervisor =
+            isSupervisorValue === 'true' || isSupervisorValue === '1';
+          dto.departmentName = row['Tên khoa']?.toString().trim() || '';
 
-          // Check duplicate lecturerCode
+          // 2️⃣ Validate DTO
+          const validationErrors = await validate(dto);
+          if (validationErrors.length > 0) {
+            throw new Error(
+              validationErrors
+                .map((err) => Object.values(err.constraints || {}))
+                .flat()
+                .join(', '),
+            );
+          }
+
+          // 3️⃣ Check trùng mã giảng viên
           const existingByCode = await this.em.findOne(Lecturer, {
             lecturerCode: dto.lecturerCode,
           });
@@ -258,93 +280,86 @@ export class LecturerService {
             errors.push({
               row: rowNumber,
               error: `Mã giảng viên ${dto.lecturerCode} đã tồn tại`,
+              data: row,
             });
             failed++;
             continue;
           }
 
-          // Check duplicate email if provided
-          if (dto.email) {
-            const existingUser = await this.em.findOne(User, {
-              email: dto.email,
-            });
-            if (existingUser) {
-              errors.push({
-                row: rowNumber,
-                error: `Email ${dto.email} đã tồn tại`,
-              });
-              failed++;
-              continue;
-            }
+          // 4️⃣ Tìm khoa dựa theo tên
+          const departmentEntity = await this.em.findOne(Department, {
+            departmentName: dto.departmentName,
+          });
+          if (!departmentEntity) {
+            throw new Error(
+              `Không tìm thấy khoa với tên ${dto.departmentName}`,
+            );
           }
 
-          // Get department if provided
-          let department: Department | undefined;
-          if (dto.departmentId) {
-            department =
-              (await this.em.findOne(Department, { id: dto.departmentId })) ??
-              undefined;
-            if (!department) {
-              errors.push({
-                row: rowNumber,
-                error: `Không tìm thấy khoa với ID ${dto.departmentId}`,
-              });
-              failed++;
-              continue;
-            }
-          }
+          // 5️⃣ Xử lý User và Role
+          const email =
+            row['Email']?.toString().trim() ||
+            `${dto.lecturerCode.toLowerCase()}@lecturer.ptithcm.vn`;
 
-          // Create User if email provided
-          let user: User | undefined;
-          if (dto.email) {
+          let user = await this.em.findOne(User, { email });
+          if (!user) {
             user = this.em.create(User, {
-              email: dto.email,
-              password: await bcrypt.hash('123456', 10), // Default password
-              firstName: dto.firstName,
-              lastName: dto.lastName,
+              email,
+              password: await bcrypt.hash('123456@Abc', 10),
             });
             await this.em.persistAndFlush(user);
+
+            const role = await this.em.findOne(Role, { name: 'GIANG_VIEN' });
+            if (!role)
+              throw new NotFoundException('Không tìm thấy role GIANG_VIEN');
+
+            const userRole = this.em.create(UserRole, { user, role });
+            await this.em.persistAndFlush(userRole);
+          } else {
+            const existingLecturer = await this.em.findOne(Lecturer, { user });
+            if (existingLecturer) {
+              throw new Error(`User này đã gắn với giảng viên khác`);
+            }
           }
 
-          // Create Lecturer
-          const lecturerData: any = {
+          // 6️⃣ Tạo Lecturer
+          const lecturer = this.em.create(Lecturer, {
             lecturerCode: dto.lecturerCode,
             firstName: dto.firstName,
             lastName: dto.lastName,
-            email: dto.email,
+            dateOfBirth: new Date(dto.dateOfBirth),
+            gender: dto.gender,
+            address: dto.address,
+            phoneNumber: dto.phoneNumber,
             isSupervisor: dto.isSupervisor ?? false,
-          };
-
-          if (user) {
-            lecturerData.user = user;
-          }
-
-          if (department) {
-            lecturerData.department = department;
-          }
-
-          const lecturer = this.em.create(Lecturer, lecturerData);
-
+            user,
+            department: departmentEntity,
+          });
           await this.em.persistAndFlush(lecturer);
           imported++;
         } catch (error) {
-          errors.push({
-            row: rowNumber,
-            error:
-              error instanceof Error
-                ? error.message
-                : 'Lỗi không xác định khi xử lý dòng',
-          });
           failed++;
+          const errorMessage =
+            error instanceof Error ? error.message : 'Lỗi không xác định';
+          errors.push({ row: rowNumber, error: errorMessage, data: row });
         }
       }
 
       return { imported, failed, errors };
-    } finally {
-      // Clean up uploaded file
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+    } catch (error) {
+      throw error;
     }
+  }
+
+  private parseExcelDate(excelDate: any): string {
+    if (typeof excelDate === 'string') {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(excelDate)) return excelDate;
+      const date = new Date(excelDate);
+      if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
+    } else if (typeof excelDate === 'number') {
+      const date = new Date((excelDate - 25569) * 86400 * 1000);
+      if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
+    }
+    throw new Error('Ngày sinh không hợp lệ');
   }
 }

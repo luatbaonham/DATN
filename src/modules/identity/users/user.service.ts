@@ -63,7 +63,7 @@ export class UserService {
       );
     }
 
-    qb.orderBy({ 'u.createAt': 'DESC' }).limit(limit).offset(offset);
+    qb.orderBy({ 'u.createdAt': 'DESC' }).limit(limit).offset(offset);
 
     // ⚡ Load dữ liệu
     const [users, total] = await qb.getResultAndCount();
@@ -83,8 +83,8 @@ export class UserService {
             name: ur.role!.name,
             description: ur.role!.description,
           })) ?? [],
-      createAt: u.createdAt,
-      updateAt: u.updatedAt,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
     }));
 
     const mapped = plainToInstance(UserResponseDto, data, {

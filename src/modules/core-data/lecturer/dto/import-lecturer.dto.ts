@@ -7,36 +7,51 @@ import {
   MinLength,
   IsBoolean,
   IsNumber,
+  IsNotEmpty,
+  IsDateString,
+  IsIn,
+  IsPhoneNumber,
 } from 'class-validator';
 
 export class ImportLecturerDto {
-  @Expose()
+  @IsNotEmpty({ message: 'Mã sinh viên là bắt buộc' })
   @IsString()
-  @MinLength(5)
-  @MaxLength(20)
   lecturerCode!: string;
 
-  @Expose()
+  @IsNotEmpty({ message: 'Họ là bắt buộc' })
   @IsString()
-  @MaxLength(50)
-  firstName!: string;
-
-  @Expose()
-  @IsString()
-  @MaxLength(50)
   lastName!: string;
 
-  @Expose()
-  @IsEmail()
-  email!: string;
+  @IsNotEmpty({ message: 'Tên là bắt buộc' })
+  @IsString()
+  firstName!: string;
 
-  @Expose()
-  @IsNumber()
+  @IsNotEmpty({ message: 'Ngày sinh là bắt buộc' })
+  @IsDateString(
+    {},
+    { message: 'Ngày sinh phải có định dạng hợp lệ (YYYY-MM-DD)' },
+  )
+  dateOfBirth!: string;
+
+  @IsNotEmpty({ message: 'Giới tính là bắt buộc' })
+  @IsIn(['male', 'female', 'other'], {
+    message: 'Giới tính phải là male, female hoặc other',
+  })
+  gender!: string;
+
   @IsOptional()
-  departmentId?: number;
+  @IsString()
+  address?: string;
 
-  @Expose()
-  @IsBoolean()
+  @IsOptional()
+  @IsPhoneNumber('VN', { message: 'Số điện thoại không hợp lệ' })
+  phoneNumber?: string;
+
+  @IsNotEmpty({ message: 'Tên khoa là bắt buộc' })
+  @IsString()
+  departmentName!: string; // FE chỉ nhập tên khoa
+
+  @IsBoolean({ message: 'Giám thị là 1 trạng thái( true/false)' })
   @IsOptional()
   isSupervisor?: boolean;
 }
