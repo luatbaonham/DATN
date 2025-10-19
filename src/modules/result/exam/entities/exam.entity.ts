@@ -17,9 +17,6 @@ export class Exam {
   @PrimaryKey()
   id!: number;
 
-  @ManyToOne(() => ExamSession)
-  examSession!: ExamSession;
-
   @ManyToOne(() => ExamGroup)
   examGroup!: ExamGroup;
 

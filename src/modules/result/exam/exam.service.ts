@@ -21,20 +21,17 @@ export class ExamService {
   constructor(private readonly em: EntityManager) {}
 
   async create(dto: CreateExamDto): Promise<Exam> {
-    const [examSession, examGroup, room, examSlot] = await Promise.all([
-      this.em.findOne(ExamSession, { id: dto.examSessionId }),
+    const [examGroup, room, examSlot] = await Promise.all([
       this.em.findOne(ExamGroup, { id: dto.examGroupId }),
       this.em.findOne(Room, { id: dto.roomId }),
       this.em.findOne(ExamSlot, { id: dto.examSlotId }),
     ]);
 
-    if (!examSession) throw new NotFoundException('Không tìm thấy đợt thi');
     if (!examGroup) throw new NotFoundException('Không tìm thấy nhóm thi');
     if (!room) throw new NotFoundException('Không tìm thấy phòng thi');
     if (!examSlot) throw new NotFoundException('Không tìm thấy ca thi');
 
     const exam = this.em.create(Exam, {
-      examSession,
       examGroup,
       room,
       examSlot,
@@ -79,7 +76,7 @@ export class ExamService {
     const exam = await this.em.findOne(
       Exam,
       { id },
-      { populate: ['examSession', 'examGroup', 'room', 'examSlot'] },
+      { populate: ['examGroup', 'room', 'examSlot'] },
     );
     if (!exam) throw new NotFoundException('Không tìm thấy kỳ thi');
     return exam;

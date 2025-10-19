@@ -7,13 +7,16 @@ import {
   Delete,
   Put,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ExamGroupsService } from './exam-groups.service';
 import { CreateExamGroupDto } from './dto/create-exam-group.dto';
 import { UpdateExamGroupDto } from './dto/update-exam-group.dto';
 import { ExamGroupResponseDto } from './dto/exam-group-response.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import { ExamGroupFilterDto } from './dto/exam-group-filter.dto';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 
 @ApiTags('exam group')
 @Controller('exam-groups')
@@ -32,12 +35,12 @@ export class ExamGroupsController {
 
   @Get()
   @ApiOperation({ summary: 'Danh sách nhóm thi' })
-  @ApiResponse({ status: 200, type: [ExamGroupResponseDto] })
-  async findAll(): Promise<ExamGroupResponseDto[]> {
-    const groups = await this.service.findAll();
-    return plainToInstance(ExamGroupResponseDto, groups, {
-      excludeExtraneousValues: true,
-    });
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async findAll(
+    @Query() filter: ExamGroupFilterDto,
+  ): Promise<PaginatedResponseDto<ExamGroupResponseDto>> {
+    return this.service.findAll(filter);
   }
 
   @Get(':id')

@@ -44,9 +44,6 @@ export class ExamSession {
   @OneToMany(() => ExamSlot, (examSlot) => examSlot.examSession)
   examSlot = new Collection<ExamSlot>(this);
 
-  @OneToMany(() => Exam, (exam) => exam.examSession)
-  exam = new Collection<Exam>(this);
-
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;
 

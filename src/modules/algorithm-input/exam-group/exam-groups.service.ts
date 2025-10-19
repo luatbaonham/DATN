@@ -1,10 +1,14 @@
-import { EntityManager } from '@mikro-orm/core';
+import { EntityManager } from '@mikro-orm/mysql';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ExamGroup } from './entities/exam-group.entity';
 import { CreateExamGroupDto } from './dto/create-exam-group.dto';
 import { UpdateExamGroupDto } from './dto/update-exam-group.dto';
 import { Course } from '../course/entities/course.entity';
 import { ExamSession } from '../exam-session/entities/exam-session.entity';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { ExamGroupResponseDto } from './dto/exam-group-response.dto';
+import { plainToInstance } from 'class-transformer';
+import { ExamGroupFilterDto } from './dto/exam-group-filter.dto';
 
 @Injectable()
 export class ExamGroupsService {
@@ -27,8 +31,22 @@ export class ExamGroupsService {
     return examGroup;
   }
 
-  async findAll(): Promise<ExamGroup[]> {
-    return this.em.find(ExamGroup, {});
+  async findAll(
+    filter: ExamGroupFilterDto,
+  ): Promise<PaginatedResponseDto<ExamGroupResponseDto>> {
+    const { page = 1, limit = 10 } = filter;
+    const offset = (page - 1) * limit;
+
+    const qb = this.em
+      .createQueryBuilder(ExamGroup, 'eg')
+      .leftJoinAndSelect('eg.course', 'course')
+      .leftJoinAndSelect('eg.examSession', 'examSession');
+    qb.orderBy({ createdAt: 'DESC' }).limit(limit).offset(offset);
+    const [data, total] = await qb.getResultAndCount();
+    const items = plainToInstance(ExamGroupResponseDto, data, {
+      excludeExtraneousValues: true,
+    });
+    return PaginatedResponseDto.from(items, page, limit, total);
   }
 
   async findOne(id: number): Promise<ExamGroup> {
