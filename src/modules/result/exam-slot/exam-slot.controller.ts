@@ -37,7 +37,6 @@ export class ExamSlotController {
   constructor(private readonly examSlotService: ExamSlotService) {}
 
   @Get()
-  @Permissions('manage_exam_slots:read')
   @ApiOperation({ summary: 'Lấy danh sách ca thi' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -49,7 +48,6 @@ export class ExamSlotController {
   }
 
   @Get(':id')
-  @Permissions('manage_exam_slots:read')
   @ApiOperation({ summary: 'Chi tiết ca thi' })
   @ApiResponse({ status: 200, type: ExamSlotResponseDto })
   async findOne(
@@ -62,7 +60,6 @@ export class ExamSlotController {
   }
 
   @Post()
-  @Permissions('manage_exam_slots:create')
   @ApiOperation({ summary: 'Tạo ca thi mới' })
   @ApiResponse({ status: 200, type: ExamSlotResponseDto })
   async create(@Body() dto: CreateExamSlotDto): Promise<ExamSlotResponseDto> {
@@ -73,7 +70,6 @@ export class ExamSlotController {
   }
 
   @Put(':id')
-  @Permissions('manage_exam_slots:update')
   @ApiOperation({ summary: 'Cập nhật ca thi' })
   @ApiBody({ type: UpdateExamSlotDto })
   @ApiResponse({ status: 200, type: ExamSlotResponseDto })
@@ -88,7 +84,6 @@ export class ExamSlotController {
   }
 
   @Delete(':id')
-  @Permissions('manage_exam_slots:delete')
   @ApiOperation({ summary: 'Xoá ca thi' })
   async remove(
     @Param('id', ParseIntPipe) id: number,

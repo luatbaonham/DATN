@@ -37,7 +37,6 @@ export class ExamRegistrationController {
   constructor(private readonly examRegService: ExamRegistrationService) {}
 
   @Get()
-  @Permissions('manage_exam_registrations:read')
   @ApiOperation({ summary: 'Lấy danh sách đăng ký thi' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -48,7 +47,6 @@ export class ExamRegistrationController {
   }
 
   @Get(':id')
-  @Permissions('manage_exam_registrations:read')
   @ApiOperation({ summary: 'Chi tiết đăng ký thi' })
   @ApiResponse({ status: 200, type: ExamRegistrationResponseDto })
   async findOne(
@@ -61,7 +59,6 @@ export class ExamRegistrationController {
   }
 
   @Post()
-  @Permissions('manage_exam_registrations:create')
   @ApiOperation({ summary: 'Tạo đăng ký thi mới' })
   @ApiResponse({ status: 200, type: ExamRegistrationResponseDto })
   async create(
@@ -74,7 +71,6 @@ export class ExamRegistrationController {
   }
 
   @Put(':id')
-  @Permissions('manage_exam_registrations:update')
   @ApiOperation({ summary: 'Cập nhật đăng ký thi' })
   @ApiBody({ type: UpdateExamRegistrationDto })
   @ApiResponse({ status: 200, type: ExamRegistrationResponseDto })
@@ -89,7 +85,6 @@ export class ExamRegistrationController {
   }
 
   @Delete(':id')
-  @Permissions('manage_exam_registrations:delete')
   @ApiOperation({ summary: 'Xoá đăng ký thi' })
   async remove(
     @Param('id', ParseIntPipe) id: number,

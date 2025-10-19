@@ -56,7 +56,7 @@ import { ExamSupervisorModule } from '@modules/result/exam-supervisor/exam-super
     ExamModule,
     ExamSlotModule,
     ExamRegistrationModule,
-    ExamSupervisorModule,
+    ExamSupervisorModule, 
   ],
   controllers: [AppController],
   providers: [AppService],

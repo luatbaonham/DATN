@@ -82,7 +82,6 @@ export class ExamSupervisorController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Xoá giám thị thi' })
   async remove(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ success: boolean }> {

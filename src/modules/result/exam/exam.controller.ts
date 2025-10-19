@@ -37,7 +37,6 @@ export class ExamController {
   constructor(private readonly examService: ExamService) {}
 
   @Get()
-  @Permissions('manage_exams:read')
   @ApiOperation({ summary: 'Lấy danh sách kỳ thi' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -48,7 +47,6 @@ export class ExamController {
   }
 
   @Get(':id')
-  @Permissions('manage_exams:read')
   @ApiOperation({ summary: 'Chi tiết kỳ thi' })
   @ApiResponse({ status: 200, type: ExamResponseDto })
   async findOne(
@@ -61,7 +59,6 @@ export class ExamController {
   }
 
   @Post()
-  @Permissions('manage_exams:create')
   @ApiOperation({ summary: 'Tạo kỳ thi mới' })
   @ApiResponse({ status: 200, type: ExamResponseDto })
   async create(@Body() dto: CreateExamDto): Promise<ExamResponseDto> {
@@ -72,7 +69,6 @@ export class ExamController {
   }
 
   @Put(':id')
-  @Permissions('manage_exams:update')
   @ApiOperation({ summary: 'Cập nhật kỳ thi' })
   @ApiBody({ type: UpdateExamDto })
   @ApiResponse({ status: 200, type: ExamResponseDto })
@@ -87,7 +83,6 @@ export class ExamController {
   }
 
   @Delete(':id')
-  @Permissions('manage_exams:delete')
   @ApiOperation({ summary: 'Xoá kỳ thi' })
   async remove(
     @Param('id', ParseIntPipe) id: number,
