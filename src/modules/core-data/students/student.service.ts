@@ -237,8 +237,6 @@ export class StudentService {
               // Tạo user mới nếu có đủ thông tin
               user = this.em.create(User, {
                 email,
-                firstName,
-                lastName,
                 password: 'defaultPassword123', // Password mặc định, nên thay đổi sau
               });
               await this.em.persistAndFlush(user);
@@ -246,16 +244,16 @@ export class StudentService {
           }
 
           // Tạo sinh viên với dữ liệu đã validate
-          const student = this.em.create(Student, {
-            studentCode,
-            dateOfBirth,
-            gender,
-            address: address || '',
-            phoneNumber: phoneNumber || '',
-            user: user ?? undefined,
-          });
+          // const student = this.em.create(Student, {
+          //   studentCode,
+          //   dateOfBirth,
+          //   gender,
+          //   address: address || '',
+          //   phoneNumber: phoneNumber || '',
+          //   user: user ?? undefined,
+          // });
 
-          await this.em.persistAndFlush(student);
+          // await this.em.persistAndFlush(student);
           imported++;
         } catch (error) {
           failed++;

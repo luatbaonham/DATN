@@ -17,7 +17,6 @@ import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
-import * as bcrypt from 'bcrypt';
 import { ImportLecturerDto } from './dto/import-lecturer.dto';
 import { Role } from '@modules/identity/roles-permissions/entities/role.entity';
 import { UserRole } from '@modules/identity/users/entities/user-role.entity';
@@ -300,8 +299,6 @@ export class LecturerService {
             user = this.em.create(User, {
               email: dto.email,
               password: await bcrypt.hash('123456', 10), // Default password
-              firstName: dto.firstName,
-              lastName: dto.lastName,
             });
             await this.em.persistAndFlush(user);
           }
