@@ -89,7 +89,7 @@ export class RoomsService {
     }
 
     // 🧭 Sắp xếp + Phân trang
-    qb.orderBy({ 'r.createAt': 'DESC' }).limit(limit).offset(offset);
+    qb.orderBy({ 'r.createdAt': 'DESC' }).limit(limit).offset(offset);
 
     // ⚡ Lấy dữ liệu
     const [rooms, total] = await qb.getResultAndCount();

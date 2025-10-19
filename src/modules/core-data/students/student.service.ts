@@ -19,6 +19,8 @@ import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import { UserRole } from '@modules/identity/users/entities/user-role.entity';
 import { Role } from '@modules/identity/roles-permissions/entities/role.entity';
+import { validate } from 'class-validator';
+import { ImportStudentDto } from './dto/import-student.dto';
 
 @Injectable()
 export class StudentService {
@@ -164,22 +166,173 @@ export class StudentService {
     return true;
   }
 
+  // async importFromExcel(filePath: string): Promise<{
+  //   imported: number;
+  //   failed: number;
+  //   errors: Array<{ row: number; error: string; data?: any }>;
+  // }> {
+  //   try {
+  //     // Đọc file Excel
+  //     const workbook = XLSX.readFile(filePath);
+  //     const sheetName = workbook.SheetNames[0];
+  //     const worksheet = workbook.Sheets[sheetName];
+
+  //     // Chuyển đổi sang JSON
+  //     const rawData: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+  //     if (!rawData || rawData.length === 0) {
+  //       throw new BadRequestException('File Excel trống hoặc không hợp lệ');
+  //     }
+
+  //     let imported = 0;
+  //     let failed = 0;
+  //     const errors: Array<{ row: number; error: string; data?: any }> = [];
+
+  //     // Xử lý từng dòng
+  //     for (let i = 0; i < rawData.length; i++) {
+  //       const row = rawData[i];
+  //       const rowNumber = i + 2; // +2 vì dòng 1 là header, index bắt đầu từ 0
+
+  //       try {
+  //         // Map dữ liệu từ Excel
+  //         const studentCode = row['Mã sinh viên']?.toString().trim();
+  //         const firstName = row['Tên']?.toString().trim();
+  //         const lastName = row['Họ']?.toString().trim();
+  //         const dateOfBirthRaw = row['Ngày sinh'];
+  //         const genderRaw = row['Giới tính']?.toString().toLowerCase().trim();
+  //         const address = row['Địa chỉ']?.toString().trim();
+  //         const phoneNumber = row['Số điện thoại']?.toString().trim();
+
+  //         // Validate dữ liệu cơ bản
+  //         if (!studentCode) {
+  //           throw new Error('Mã sinh viên không được để trống');
+  //         }
+
+  //         // Parse date of birth
+  //         const dateOfBirth = dateOfBirthRaw
+  //           ? this.parseExcelDate(dateOfBirthRaw)
+  //           : new Date().toISOString().split('T')[0];
+
+  //         // Validate gender
+  //         const gender =
+  //           genderRaw === 'male' || genderRaw === 'female' ? genderRaw : 'male';
+
+  //         // Kiểm tra trùng mã sinh viên
+  //         const existingStudent = await this.em.findOne(Student, {
+  //           studentCode,
+  //         });
+
+  //         if (existingStudent) {
+  //           throw new Error(`Mã sinh viên ${studentCode} đã tồn tại`);
+  //         }
+
+  //         // Tìm hoặc tạo User
+  //         const email = row['Email']?.toString().trim();
+
+  //         let user: User | null = null;
+
+  //         if (email) {
+  //           // Kiểm tra xem email đã tồn tại chưa
+  //           user = await this.em.findOne(User, { email });
+
+  //           if (!user) {
+  //             // Tạo user mới nếu có đủ thông tin
+  //             user = this.em.create(User, {
+  //               email,
+  //               password: 'defaultPassword123', // Password mặc định, nên thay đổi sau
+  //             });
+  //             await this.em.persistAndFlush(user);
+  //           }
+  //         }
+
+  //         // Tạo sinh viên với dữ liệu đã validate
+  //         const student = this.em.create(Student, {
+  //           studentCode,
+  //           firstName,
+  //           lastName,
+  //           dateOfBirth,
+  //           gender,
+  //           address: address || '',
+  //           phoneNumber: phoneNumber || '',
+  //           user: user ?? undefined,
+  //           classes: , // Cần cập nhật sau
+  //         });
+
+  //         await this.em.persistAndFlush(student);
+  //         imported++;
+  //       } catch (error) {
+  //         failed++;
+  //         const errorMessage =
+  //           error instanceof Error ? error.message : 'Lỗi không xác định';
+  //         errors.push({
+  //           row: rowNumber,
+  //           error: errorMessage,
+  //           data: row,
+  //         });
+  //       }
+  //     }
+
+  //     // Xóa file sau khi xử lý
+  //     try {
+  //       fs.unlinkSync(filePath);
+  //     } catch (err) {
+  //       console.error('Không thể xóa file:', err);
+  //     }
+
+  //     return {
+  //       imported,
+  //       failed,
+  //       errors,
+  //     };
+  //   } catch (error) {
+  //     // Xóa file nếu có lỗi
+  //     try {
+  //       fs.unlinkSync(filePath);
+  //     } catch (err) {
+  //       console.error('Không thể xóa file:', err);
+  //     }
+  //     throw error;
+  //   }
+  // }
+
+  // // Helper function để parse date từ Excel
+  // private parseExcelDate(excelDate: any): string {
+  //   if (typeof excelDate === 'string') {
+  //     // Nếu đã là string dạng YYYY-MM-DD
+  //     if (/^\d{4}-\d{2}-\d{2}$/.test(excelDate)) {
+  //       return excelDate;
+  //     }
+  //     // Parse các định dạng khác
+  //     const date = new Date(excelDate);
+  //     if (!isNaN(date.getTime())) {
+  //       return date.toISOString().split('T')[0];
+  //     }
+  //   } else if (typeof excelDate === 'number') {
+  //     // Excel serial date number
+  //     const date = new Date((excelDate - 25569) * 86400 * 1000);
+  //     return date.toISOString().split('T')[0];
+  //   }
+  //   return new Date().toISOString().split('T')[0];
+  // }
+
   async importFromExcel(filePath: string): Promise<{
     imported: number;
     failed: number;
     errors: Array<{ row: number; error: string; data?: any }>;
   }> {
     try {
-      // Đọc file Excel
+      // Đọc file Excel/CSV
       const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
 
-      // Chuyển đổi sang JSON
-      const rawData: any[] = XLSX.utils.sheet_to_json(worksheet);
+      // Chuyển đổi sang JSON (hỗ trợ CSV nếu file là .csv)
+      const rawData: any[] = XLSX.utils.sheet_to_json(worksheet, {
+        defval: '',
+      });
 
       if (!rawData || rawData.length === 0) {
-        throw new BadRequestException('File Excel trống hoặc không hợp lệ');
+        throw new BadRequestException('File Excel/CSV trống hoặc không hợp lệ');
       }
 
       let imported = 0;
@@ -189,69 +342,87 @@ export class StudentService {
       // Xử lý từng dòng
       for (let i = 0; i < rawData.length; i++) {
         const row = rawData[i];
-        const rowNumber = i + 2; // +2 vì dòng 1 là header, index bắt đầu từ 0
+        const rowNumber = i + 2; // +2 vì header ở dòng 1
 
         try {
           // Map dữ liệu từ Excel
-          const studentCode = row['Mã sinh viên']?.toString().trim();
-          const dateOfBirthRaw = row['Ngày sinh'];
-          const genderRaw = row['Giới tính']?.toString().toLowerCase().trim();
-          const address = row['Địa chỉ']?.toString().trim();
-          const phoneNumber = row['Số điện thoại']?.toString().trim();
+          const dto = new ImportStudentDto();
+          dto.studentCode = row['Mã sinh viên']?.toString().trim() || '';
+          dto.lastName = row['Họ']?.toString().trim() || '';
+          dto.firstName = row['Tên']?.toString().trim() || '';
+          dto.dateOfBirth = this.parseExcelDate(row['Ngày sinh']) || '';
+          dto.gender = (row['Giới tính']?.toString().toLowerCase().trim() ||
+            'male') as 'male' | 'female' | 'other';
+          dto.address = row['Địa chỉ']?.toString().trim() || '';
+          dto.phoneNumber = row['Số điện thoại']?.toString().trim() || '';
+          dto.className = row['Tên lớp']?.toString().trim() || ''; // Thêm để tìm class
 
-          // Validate dữ liệu cơ bản
-          if (!studentCode) {
-            throw new Error('Mã sinh viên không được để trống');
+          // Validate DTO
+          const validationErrors = await validate(dto);
+          if (validationErrors.length > 0) {
+            throw new Error(
+              validationErrors
+                .map((err) => Object.values(err.constraints || {}))
+                .flat()
+                .join(', '),
+            );
           }
-
-          // Parse date of birth
-          const dateOfBirth = dateOfBirthRaw
-            ? this.parseExcelDate(dateOfBirthRaw)
-            : new Date().toISOString().split('T')[0];
-
-          // Validate gender
-          const gender =
-            genderRaw === 'male' || genderRaw === 'female' ? genderRaw : 'male';
 
           // Kiểm tra trùng mã sinh viên
           const existingStudent = await this.em.findOne(Student, {
-            studentCode,
+            studentCode: dto.studentCode,
           });
-
           if (existingStudent) {
-            throw new Error(`Mã sinh viên ${studentCode} đã tồn tại`);
+            throw new Error(`Mã sinh viên ${dto.studentCode} đã tồn tại`);
+          }
+
+          // Tìm class dựa trên className
+          const classEntity = await this.em.findOne(Classes, {
+            className: dto.className,
+          });
+          if (!classEntity) {
+            throw new Error(`Không tìm thấy lớp học với tên ${dto.className}`);
           }
 
           // Tìm hoặc tạo User
-          const email = row['Email']?.toString().trim();
-          const firstName = row['Tên']?.toString().trim();
-          const lastName = row['Họ']?.toString().trim();
+          const email =
+            row['Email']?.toString().trim() ||
+            `${dto.studentCode.toLowerCase()}@edu.ptithcm.vn`;
+          let user: User | null = await this.em.findOne(User, { email });
 
-          let user: User | null = null;
+          if (!user) {
+            const defaultPassword = dto.studentCode; // Như ở create
+            user = this.em.create(User, {
+              email,
+              password: await bcrypt.hash(defaultPassword, 10),
+            });
+            await this.em.persistAndFlush(user);
 
-          if (email) {
-            // Kiểm tra xem email đã tồn tại chưa
-            user = await this.em.findOne(User, { email });
-
-            if (!user && firstName && lastName) {
-              // Tạo user mới nếu có đủ thông tin
-              user = this.em.create(User, {
-                email,
-                password: 'defaultPassword123', // Password mặc định, nên thay đổi sau
-              });
-              await this.em.persistAndFlush(user);
-            }
+            // Gắn role STUDENT
+            const role = await this.em.findOne(Role, { name: 'SINH_VIEN' });
+            if (!role)
+              throw new NotFoundException('Không tìm thấy role STUDENT');
+            const userRole = this.em.create(UserRole, { user, role });
+            await this.em.persistAndFlush(userRole);
+          } else {
+            // Kiểm tra user chưa gắn student khác
+            const existedStudent = await this.em.findOne(Student, { user });
+            if (existedStudent)
+              throw new ConflictException('User đã gắn với sinh viên khác!');
           }
 
-          // Tạo sinh viên với dữ liệu đã validate
-          // const student = this.em.create(Student, {
-          //   studentCode,
-          //   dateOfBirth,
-          //   gender,
-          //   address: address || '',
-          //   phoneNumber: phoneNumber || '',
-          //   user: user ?? undefined,
-          // });
+          // Tạo sinh viên
+          const student = this.em.create(Student, {
+            studentCode: dto.studentCode,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            dateOfBirth: new Date(dto.dateOfBirth),
+            gender: dto.gender,
+            address: dto.address,
+            phoneNumber: dto.phoneNumber,
+            user,
+            classes: classEntity, // Đã sửa: assign entity
+          });
 
           // await this.em.persistAndFlush(student);
           imported++;
@@ -268,11 +439,7 @@ export class StudentService {
       }
 
       // Xóa file sau khi xử lý
-      try {
-        fs.unlinkSync(filePath);
-      } catch (err) {
-        console.error('Không thể xóa file:', err);
-      }
+      fs.unlinkSync(filePath);
 
       return {
         imported,
@@ -280,33 +447,28 @@ export class StudentService {
         errors,
       };
     } catch (error) {
-      // Xóa file nếu có lỗi
-      try {
-        fs.unlinkSync(filePath);
-      } catch (err) {
-        console.error('Không thể xóa file:', err);
-      }
+      // Xóa file nếu lỗi
+      fs.unlinkSync(filePath);
       throw error;
     }
   }
 
-  // Helper function để parse date từ Excel
+  // Helper parseExcelDate (giữ nguyên, nhưng thêm check NaN)
   private parseExcelDate(excelDate: any): string {
     if (typeof excelDate === 'string') {
-      // Nếu đã là string dạng YYYY-MM-DD
       if (/^\d{4}-\d{2}-\d{2}$/.test(excelDate)) {
         return excelDate;
       }
-      // Parse các định dạng khác
       const date = new Date(excelDate);
       if (!isNaN(date.getTime())) {
         return date.toISOString().split('T')[0];
       }
     } else if (typeof excelDate === 'number') {
-      // Excel serial date number
       const date = new Date((excelDate - 25569) * 86400 * 1000);
-      return date.toISOString().split('T')[0];
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
     }
-    return new Date().toISOString().split('T')[0];
+    throw new Error('Ngày sinh không hợp lệ');
   }
 }

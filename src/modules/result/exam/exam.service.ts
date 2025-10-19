@@ -72,7 +72,7 @@ export class ExamService {
       excludeExtraneousValues: true,
     });
 
-    return PaginatedResponseDto.from(items, total, page, limit);
+    return PaginatedResponseDto.from(items, page, limit, total);
   }
 
   async findOne(id: number): Promise<Exam> {

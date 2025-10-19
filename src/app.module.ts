@@ -24,6 +24,7 @@ import { ConstraintModule } from '@modules/constraints/constraint.module';
 import { ExamModule } from '@modules/result/exam/exam.module';
 import { ExamRegistrationModule } from '@modules/result/exam-registration/exam-registration.module';
 import { ExamSlotModule } from '@modules/result/exam-slot/exam-slot.module';
+import { ExamSupervisorModule } from '@modules/result/exam-supervisor/exam-supervisor.module';
 @Module({
   imports: [
     MikroOrmModule.forRoot(config),
@@ -55,6 +56,7 @@ import { ExamSlotModule } from '@modules/result/exam-slot/exam-slot.module';
     ExamModule,
     ExamSlotModule,
     ExamRegistrationModule,
+    ExamSupervisorModule,
   ],
   controllers: [AppController],
   providers: [AppService],
