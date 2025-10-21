@@ -1,5 +1,8 @@
+import { CourseResponseDto } from '@modules/algorithm-input/course/dto/course-response.dto';
+import { ExamSessionResponseDto } from '@modules/algorithm-input/exam-session/dto/exam-session-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { type } from 'os';
 
 @Exclude()
 export class ExamGroupResponseDto {
@@ -15,13 +18,18 @@ export class ExamGroupResponseDto {
   @Expose()
   expected_student_count!: number;
 
-  @ApiProperty({ example: 1, description: 'ID học phần (FK Course)' })
+  @ApiProperty({ type: CourseResponseDto, description: 'Thông tin khóa học' })
+  @Type(() => CourseResponseDto)
   @Expose()
-  course_id!: number;
+  course!: CourseResponseDto;
 
-  @ApiProperty({ example: 1, description: 'ID đợt thi (FK ExamSession)' })
+  @ApiProperty({
+    type: ExamSessionResponseDto,
+    description: 'Thông tin kỳ thi',
+  })
+  @Type(() => ExamSessionResponseDto)
   @Expose()
-  exam_session_id!: number;
+  examSession!: ExamSessionResponseDto;
 
   @ApiProperty({
     example: 'not_scheduled',

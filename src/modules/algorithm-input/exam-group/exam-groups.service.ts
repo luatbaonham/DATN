@@ -37,15 +37,23 @@ export class ExamGroupsService {
     const { page = 1, limit = 10 } = filter;
     const offset = (page - 1) * limit;
 
-    const qb = this.em
-      .createQueryBuilder(ExamGroup, 'eg')
-      .leftJoinAndSelect('eg.course', 'course')
-      .leftJoinAndSelect('eg.examSession', 'examSession');
-    qb.orderBy({ createdAt: 'DESC' }).limit(limit).offset(offset);
-    const [data, total] = await qb.getResultAndCount();
+    // ⚡ Dùng findAndCount để vừa query, vừa count tổng số bản ghi
+    const [data, total] = await this.em.findAndCount(
+      ExamGroup,
+      {}, // điều kiện filter (nếu có thì thêm ở đây)
+      {
+        populate: ['course', 'examSession'], // load 2 quan hệ
+        orderBy: { createdAt: 'DESC' },
+        limit,
+        offset,
+      },
+    );
+
+    // ⚙️ Chuyển qua DTO và loại bỏ field thừa (nhờ @Exclude/@Expose)
     const items = plainToInstance(ExamGroupResponseDto, data, {
       excludeExtraneousValues: true,
     });
+
     return PaginatedResponseDto.from(items, page, limit, total);
   }
 
