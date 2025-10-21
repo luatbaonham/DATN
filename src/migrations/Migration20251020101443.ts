@@ -1,8 +1,10 @@
 import { Migration } from '@mikro-orm/migrations';
 
-export class Migration20251012154013 extends Migration {
+export class Migration20251020101443 extends Migration {
 
   override async up(): Promise<void> {
+    this.addSql(`create table \`constraint\` (\`id\` int unsigned not null auto_increment primary key, \`constraint_code\` varchar(255) not null, \`description\` varchar(255) not null, \`type\` varchar(255) not null, \`scope\` varchar(255) not null) default character set utf8mb4 engine = InnoDB;`);
+
     this.addSql(`create table \`course\` (\`id\` int unsigned not null auto_increment primary key, \`code_course\` varchar(255) not null, \`name_course\` varchar(255) not null, \`description\` varchar(255) not null, \`credits\` int not null default 3, \`expected_students\` int not null default 0, \`is_active\` tinyint(1) not null default true, \`created_at\` datetime not null, \`updated_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
     this.addSql(`alter table \`course\` add unique \`course_code_course_unique\`(\`code_course\`);`);
 
@@ -12,10 +14,17 @@ export class Migration20251012154013 extends Migration {
     this.addSql(`create table \`exam_sessions\` (\`id\` int unsigned not null auto_increment primary key, \`name\` varchar(255) not null, \`start_date\` datetime not null, \`end_date\` datetime not null, \`is_active\` tinyint(1) not null default true, \`description\` varchar(255) null, \`location_id\` int unsigned not null, \`created_at\` datetime not null, \`updated_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
     this.addSql(`alter table \`exam_sessions\` add index \`exam_sessions_location_id_index\`(\`location_id\`);`);
 
+    this.addSql(`create table \`exam_slot\` (\`id\` int unsigned not null auto_increment primary key, \`exam_session_id\` int unsigned not null, \`slot_name\` varchar(255) not null, \`start_time\` varchar(255) not null, \`end_time\` varchar(255) not null, \`description\` varchar(255) null, \`created_at\` datetime not null, \`updated_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
+    this.addSql(`alter table \`exam_slot\` add index \`exam_slot_exam_session_id_index\`(\`exam_session_id\`);`);
+
     this.addSql(`create table \`exam_groups\` (\`id\` int unsigned not null auto_increment primary key, \`code\` varchar(255) not null, \`expected_student_count\` int not null default 0, \`status\` varchar(255) not null default 'not_scheduled', \`course_id\` int unsigned not null, \`exam_session_id\` int unsigned not null, \`created_at\` datetime not null, \`updated_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
     this.addSql(`alter table \`exam_groups\` add unique \`exam_groups_code_unique\`(\`code\`);`);
     this.addSql(`alter table \`exam_groups\` add index \`exam_groups_course_id_index\`(\`course_id\`);`);
     this.addSql(`alter table \`exam_groups\` add index \`exam_groups_exam_session_id_index\`(\`exam_session_id\`);`);
+
+    this.addSql(`create table \`constraint_rule\` (\`id\` int unsigned not null auto_increment primary key, \`exam_session_id\` int unsigned null, \`constraint_id\` int unsigned not null, \`is_active\` tinyint(1) not null, \`rule\` json not null) default character set utf8mb4 engine = InnoDB;`);
+    this.addSql(`alter table \`constraint_rule\` add index \`constraint_rule_exam_session_id_index\`(\`exam_session_id\`);`);
+    this.addSql(`alter table \`constraint_rule\` add index \`constraint_rule_constraint_id_index\`(\`constraint_id\`);`);
 
     this.addSql(`create table \`department\` (\`id\` int unsigned not null auto_increment primary key, \`department_name\` varchar(255) not null, \`department_code\` varchar(255) not null, \`location_id\` int unsigned not null, \`created_at\` datetime not null, \`updated_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
     this.addSql(`alter table \`department\` add index \`department_location_id_index\`(\`location_id\`);`);
@@ -37,6 +46,11 @@ export class Migration20251012154013 extends Migration {
     this.addSql(`alter table \`rooms\` add unique \`rooms_code_unique\`(\`code\`);`);
     this.addSql(`alter table \`rooms\` add index \`rooms_location_id_index\`(\`location_id\`);`);
 
+    this.addSql(`create table \`exam\` (\`id\` int unsigned not null auto_increment primary key, \`exam_group_id\` int unsigned not null, \`room_id\` int unsigned not null, \`exam_slot_id\` int unsigned not null, \`exam_date\` datetime not null, \`duration\` int not null, \`status\` varchar(255) not null, \`created_at\` datetime not null, \`updated_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
+    this.addSql(`alter table \`exam\` add index \`exam_exam_group_id_index\`(\`exam_group_id\`);`);
+    this.addSql(`alter table \`exam\` add index \`exam_room_id_index\`(\`room_id\`);`);
+    this.addSql(`alter table \`exam\` add index \`exam_exam_slot_id_index\`(\`exam_slot_id\`);`);
+
     this.addSql(`create table \`user\` (\`id\` int unsigned not null auto_increment primary key, \`email\` varchar(255) not null, \`password\` varchar(255) not null, \`location_id\` int unsigned null, \`created_at\` datetime not null, \`updated_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
     this.addSql(`alter table \`user\` add index \`user_location_id_index\`(\`location_id\`);`);
 
@@ -54,6 +68,10 @@ export class Migration20251012154013 extends Migration {
     this.addSql(`alter table \`student_course_registrations\` add index \`student_course_registrations_course_id_index\`(\`course_id\`);`);
     this.addSql(`alter table \`student_course_registrations\` add index \`student_course_registrations_exam_session_id_index\`(\`exam_session_id\`);`);
 
+    this.addSql(`create table \`exam_registration\` (\`id\` int unsigned not null auto_increment primary key, \`exam_id\` int unsigned not null, \`student_id\` int unsigned not null, \`created_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
+    this.addSql(`alter table \`exam_registration\` add index \`exam_registration_exam_id_index\`(\`exam_id\`);`);
+    this.addSql(`alter table \`exam_registration\` add index \`exam_registration_student_id_index\`(\`student_id\`);`);
+
     this.addSql(`create table \`refresh_token\` (\`id\` int unsigned not null auto_increment primary key, \`user_id\` int unsigned not null, \`token\` varchar(255) not null, \`expires_at\` datetime not null, \`device_info\` varchar(255) not null, \`ip_address\` varchar(255) null, \`user_agent\` varchar(255) null, \`created_at\` datetime not null, \`last_used_at\` datetime null, \`revoked_at\` datetime null) default character set utf8mb4 engine = InnoDB;`);
     this.addSql(`alter table \`refresh_token\` add index \`refresh_token_user_id_index\`(\`user_id\`);`);
 
@@ -62,14 +80,23 @@ export class Migration20251012154013 extends Migration {
     this.addSql(`alter table \`lecturer\` add unique \`lecturer_user_id_unique\`(\`user_id\`);`);
     this.addSql(`alter table \`lecturer\` add index \`lecturer_department_id_index\`(\`department_id\`);`);
 
+    this.addSql(`create table \`exam_supervisor\` (\`id\` int unsigned not null auto_increment primary key, \`exam_id\` int unsigned not null, \`lecturer_id\` int unsigned not null, \`role\` varchar(255) not null, \`created_at\` datetime not null) default character set utf8mb4 engine = InnoDB;`);
+    this.addSql(`alter table \`exam_supervisor\` add index \`exam_supervisor_exam_id_index\`(\`exam_id\`);`);
+    this.addSql(`alter table \`exam_supervisor\` add index \`exam_supervisor_lecturer_id_index\`(\`lecturer_id\`);`);
+
     this.addSql(`create table \`user_role\` (\`user_id\` int unsigned not null, \`role_id\` int unsigned not null, primary key (\`user_id\`, \`role_id\`)) default character set utf8mb4 engine = InnoDB;`);
     this.addSql(`alter table \`user_role\` add index \`user_role_user_id_index\`(\`user_id\`);`);
     this.addSql(`alter table \`user_role\` add index \`user_role_role_id_index\`(\`role_id\`);`);
 
     this.addSql(`alter table \`exam_sessions\` add constraint \`exam_sessions_location_id_foreign\` foreign key (\`location_id\`) references \`locations\` (\`id\`) on update cascade;`);
 
+    this.addSql(`alter table \`exam_slot\` add constraint \`exam_slot_exam_session_id_foreign\` foreign key (\`exam_session_id\`) references \`exam_sessions\` (\`id\`) on update cascade;`);
+
     this.addSql(`alter table \`exam_groups\` add constraint \`exam_groups_course_id_foreign\` foreign key (\`course_id\`) references \`course\` (\`id\`) on update cascade;`);
     this.addSql(`alter table \`exam_groups\` add constraint \`exam_groups_exam_session_id_foreign\` foreign key (\`exam_session_id\`) references \`exam_sessions\` (\`id\`) on update cascade;`);
+
+    this.addSql(`alter table \`constraint_rule\` add constraint \`constraint_rule_exam_session_id_foreign\` foreign key (\`exam_session_id\`) references \`exam_sessions\` (\`id\`) on update cascade on delete set null;`);
+    this.addSql(`alter table \`constraint_rule\` add constraint \`constraint_rule_constraint_id_foreign\` foreign key (\`constraint_id\`) references \`constraint\` (\`id\`) on update cascade;`);
 
     this.addSql(`alter table \`department\` add constraint \`department_location_id_foreign\` foreign key (\`location_id\`) references \`locations\` (\`id\`) on update cascade;`);
 
@@ -79,6 +106,10 @@ export class Migration20251012154013 extends Migration {
     this.addSql(`alter table \`role_permission\` add constraint \`role_permission_permission_id_foreign\` foreign key (\`permission_id\`) references \`permission\` (\`id\`) on update cascade;`);
 
     this.addSql(`alter table \`rooms\` add constraint \`rooms_location_id_foreign\` foreign key (\`location_id\`) references \`locations\` (\`id\`) on update cascade;`);
+
+    this.addSql(`alter table \`exam\` add constraint \`exam_exam_group_id_foreign\` foreign key (\`exam_group_id\`) references \`exam_groups\` (\`id\`) on update cascade;`);
+    this.addSql(`alter table \`exam\` add constraint \`exam_room_id_foreign\` foreign key (\`room_id\`) references \`rooms\` (\`id\`) on update cascade;`);
+    this.addSql(`alter table \`exam\` add constraint \`exam_exam_slot_id_foreign\` foreign key (\`exam_slot_id\`) references \`exam_slot\` (\`id\`) on update cascade;`);
 
     this.addSql(`alter table \`user\` add constraint \`user_location_id_foreign\` foreign key (\`location_id\`) references \`locations\` (\`id\`) on update cascade on delete set null;`);
 
@@ -92,16 +123,24 @@ export class Migration20251012154013 extends Migration {
     this.addSql(`alter table \`student_course_registrations\` add constraint \`student_course_registrations_course_id_foreign\` foreign key (\`course_id\`) references \`course\` (\`id\`) on update cascade;`);
     this.addSql(`alter table \`student_course_registrations\` add constraint \`student_course_registrations_exam_session_id_foreign\` foreign key (\`exam_session_id\`) references \`exam_sessions\` (\`id\`) on update cascade;`);
 
+    this.addSql(`alter table \`exam_registration\` add constraint \`exam_registration_exam_id_foreign\` foreign key (\`exam_id\`) references \`exam\` (\`id\`) on update cascade;`);
+    this.addSql(`alter table \`exam_registration\` add constraint \`exam_registration_student_id_foreign\` foreign key (\`student_id\`) references \`student\` (\`id\`) on update cascade;`);
+
     this.addSql(`alter table \`refresh_token\` add constraint \`refresh_token_user_id_foreign\` foreign key (\`user_id\`) references \`user\` (\`id\`) on update cascade;`);
 
     this.addSql(`alter table \`lecturer\` add constraint \`lecturer_user_id_foreign\` foreign key (\`user_id\`) references \`user\` (\`id\`) on update cascade on delete set null;`);
     this.addSql(`alter table \`lecturer\` add constraint \`lecturer_department_id_foreign\` foreign key (\`department_id\`) references \`department\` (\`id\`) on update cascade on delete set null;`);
+
+    this.addSql(`alter table \`exam_supervisor\` add constraint \`exam_supervisor_exam_id_foreign\` foreign key (\`exam_id\`) references \`exam\` (\`id\`) on update cascade;`);
+    this.addSql(`alter table \`exam_supervisor\` add constraint \`exam_supervisor_lecturer_id_foreign\` foreign key (\`lecturer_id\`) references \`lecturer\` (\`id\`) on update cascade;`);
 
     this.addSql(`alter table \`user_role\` add constraint \`user_role_user_id_foreign\` foreign key (\`user_id\`) references \`user\` (\`id\`) on update cascade;`);
     this.addSql(`alter table \`user_role\` add constraint \`user_role_role_id_foreign\` foreign key (\`role_id\`) references \`role\` (\`id\`) on update cascade;`);
   }
 
   override async down(): Promise<void> {
+    this.addSql(`alter table \`constraint_rule\` drop foreign key \`constraint_rule_constraint_id_foreign\`;`);
+
     this.addSql(`alter table \`exam_groups\` drop foreign key \`exam_groups_course_id_foreign\`;`);
 
     this.addSql(`alter table \`student_course_registrations\` drop foreign key \`student_course_registrations_course_id_foreign\`;`);
@@ -114,9 +153,17 @@ export class Migration20251012154013 extends Migration {
 
     this.addSql(`alter table \`user\` drop foreign key \`user_location_id_foreign\`;`);
 
+    this.addSql(`alter table \`exam_slot\` drop foreign key \`exam_slot_exam_session_id_foreign\`;`);
+
     this.addSql(`alter table \`exam_groups\` drop foreign key \`exam_groups_exam_session_id_foreign\`;`);
 
+    this.addSql(`alter table \`constraint_rule\` drop foreign key \`constraint_rule_exam_session_id_foreign\`;`);
+
     this.addSql(`alter table \`student_course_registrations\` drop foreign key \`student_course_registrations_exam_session_id_foreign\`;`);
+
+    this.addSql(`alter table \`exam\` drop foreign key \`exam_exam_slot_id_foreign\`;`);
+
+    this.addSql(`alter table \`exam\` drop foreign key \`exam_exam_group_id_foreign\`;`);
 
     this.addSql(`alter table \`student_exam_groups\` drop foreign key \`student_exam_groups_exam_group_id_foreign\`;`);
 
@@ -132,6 +179,12 @@ export class Migration20251012154013 extends Migration {
 
     this.addSql(`alter table \`user_role\` drop foreign key \`user_role_role_id_foreign\`;`);
 
+    this.addSql(`alter table \`exam\` drop foreign key \`exam_room_id_foreign\`;`);
+
+    this.addSql(`alter table \`exam_registration\` drop foreign key \`exam_registration_exam_id_foreign\`;`);
+
+    this.addSql(`alter table \`exam_supervisor\` drop foreign key \`exam_supervisor_exam_id_foreign\`;`);
+
     this.addSql(`alter table \`student\` drop foreign key \`student_user_id_foreign\`;`);
 
     this.addSql(`alter table \`refresh_token\` drop foreign key \`refresh_token_user_id_foreign\`;`);
@@ -144,13 +197,23 @@ export class Migration20251012154013 extends Migration {
 
     this.addSql(`alter table \`student_course_registrations\` drop foreign key \`student_course_registrations_student_id_foreign\`;`);
 
+    this.addSql(`alter table \`exam_registration\` drop foreign key \`exam_registration_student_id_foreign\`;`);
+
+    this.addSql(`alter table \`exam_supervisor\` drop foreign key \`exam_supervisor_lecturer_id_foreign\`;`);
+
+    this.addSql(`drop table if exists \`constraint\`;`);
+
     this.addSql(`drop table if exists \`course\`;`);
 
     this.addSql(`drop table if exists \`locations\`;`);
 
     this.addSql(`drop table if exists \`exam_sessions\`;`);
 
+    this.addSql(`drop table if exists \`exam_slot\`;`);
+
     this.addSql(`drop table if exists \`exam_groups\`;`);
+
+    this.addSql(`drop table if exists \`constraint_rule\`;`);
 
     this.addSql(`drop table if exists \`department\`;`);
 
@@ -164,6 +227,8 @@ export class Migration20251012154013 extends Migration {
 
     this.addSql(`drop table if exists \`rooms\`;`);
 
+    this.addSql(`drop table if exists \`exam\`;`);
+
     this.addSql(`drop table if exists \`user\`;`);
 
     this.addSql(`drop table if exists \`student\`;`);
@@ -172,9 +237,13 @@ export class Migration20251012154013 extends Migration {
 
     this.addSql(`drop table if exists \`student_course_registrations\`;`);
 
+    this.addSql(`drop table if exists \`exam_registration\`;`);
+
     this.addSql(`drop table if exists \`refresh_token\`;`);
 
     this.addSql(`drop table if exists \`lecturer\`;`);
+
+    this.addSql(`drop table if exists \`exam_supervisor\`;`);
 
     this.addSql(`drop table if exists \`user_role\`;`);
   }

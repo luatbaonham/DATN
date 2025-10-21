@@ -52,8 +52,9 @@ export class ExamService {
 
     const qb = this.em
       .createQueryBuilder(Exam, 'e')
-      .leftJoinAndSelect('e.examSession', 'es')
       .leftJoinAndSelect('e.examGroup', 'eg')
+      .leftJoinAndSelect('eg.course', 'c')
+      .leftJoinAndSelect('eg.examSession', 'es')
       .leftJoinAndSelect('e.room', 'r')
       .leftJoinAndSelect('e.examSlot', 's');
 

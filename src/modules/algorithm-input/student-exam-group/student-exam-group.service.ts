@@ -24,11 +24,19 @@ export class StudentExamGroupsService {
   }
 
   async findAll(): Promise<StudentExamGroup[]> {
-    return this.em.find(StudentExamGroup, {});
+    return this.em.find(
+      StudentExamGroup,
+      {},
+      { populate: ['student', 'examGroup'] },
+    );
   }
 
   async findOne(id: number): Promise<StudentExamGroup> {
-    const entity = await this.em.findOne(StudentExamGroup, { id });
+    const entity = await this.em.findOne(
+      StudentExamGroup,
+      { id },
+      { populate: ['student', 'examGroup'] },
+    );
     if (!entity)
       throw new NotFoundException(`StudentExamGroup #${id} not found`);
     return entity;
