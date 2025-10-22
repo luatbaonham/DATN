@@ -6,6 +6,27 @@ import { ExamSlot } from '@modules/result/exam-slot/entities/exam-slot.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 
+export class RoomDto {
+  @ApiProperty()
+  @Expose()
+  id!: number;
+
+  @ApiProperty()
+  @Expose()
+  code!: string;
+
+  @ApiProperty()
+  @Expose()
+  capacity!: number;
+
+  @ApiProperty()
+  @Expose()
+  type!: string;
+
+  @ApiProperty()
+  @Expose()
+  is_active!: boolean;
+}
 export class ExamResponseDto {
   @ApiProperty()
   @Expose()
@@ -33,10 +54,10 @@ export class ExamResponseDto {
   @Type(() => ExamGroupResponseDto)
   examGroup!: ExamGroupResponseDto;
 
-  @ApiProperty({ type: RoomResponseDto })
+  @ApiProperty({ type: RoomDto })
   @Expose()
-  @Type(() => RoomResponseDto)
-  room!: RoomResponseDto;
+  @Type(() => RoomDto)
+  room!: RoomDto;
 
   @ApiProperty({ type: ExamSlot })
   @Expose()
