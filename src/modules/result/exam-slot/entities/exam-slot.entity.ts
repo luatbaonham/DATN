@@ -6,16 +6,12 @@ import {
   Collection,
   OneToMany,
 } from '@mikro-orm/core';
-import { ExamSession } from '@modules/algorithm-input/exam-session/entities/exam-session.entity';
 import { Exam } from '@modules/result/exam/entities/exam.entity';
 
 @Entity()
 export class ExamSlot {
   @PrimaryKey()
   id!: number;
-
-  @ManyToOne(() => ExamSession)
-  examSession!: ExamSession;
 
   @Property()
   slotName!: string;

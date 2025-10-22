@@ -29,11 +29,13 @@ import { StudentSeeder } from './student.seeder';
 import { DepartmentSeeder } from './department.seeder';
 import { ClassSeeder } from './class.seeder';
 import { RoomSeeder } from './room.seed';
+import { UserAdminSeeder } from './user-admin.seeder';
 
 export class InitSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
     console.log('🌱 Bắt đầu seed dữ liệu mẫu...');
 
+    await this.call(em, [UserAdminSeeder]);
     // 1️⃣ Role & Permission
     await this.call(em, [PermissionSeeder]);
     console.log('✅ Đã seed Role & Permission');
@@ -130,7 +132,6 @@ export class InitSeeder extends Seeder {
 
     // 13️⃣ Exam Slot
     const slot = em.create(ExamSlot, {
-      examSession,
       slotName: 'Ca 1',
       startTime: '08:00',
       endTime: '10:00',

@@ -14,13 +14,7 @@ export class ExamSlotService {
   constructor(private readonly em: EntityManager) {}
 
   async create(dto: CreateExamSlotDto): Promise<ExamSlot> {
-    const examSession = await this.em.findOne(ExamSession, {
-      id: dto.examSessionId,
-    });
-    if (!examSession) throw new NotFoundException('Không tìm thấy đợt thi');
-
     const slot = this.em.create(ExamSlot, {
-      examSession,
       slotName: dto.slotName,
       startTime: dto.startTime,
       endTime: dto.endTime,
@@ -55,11 +49,7 @@ export class ExamSlotService {
   }
 
   async findOne(id: number): Promise<ExamSlot> {
-    const slot = await this.em.findOne(
-      ExamSlot,
-      { id },
-      { populate: ['examSession'] },
-    );
+    const slot = await this.em.findOne(ExamSlot, { id });
     if (!slot) throw new NotFoundException('Không tìm thấy ca thi');
     return slot;
   }
