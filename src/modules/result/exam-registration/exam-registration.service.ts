@@ -16,7 +16,7 @@ export class ExamRegistrationService {
 
   async create(dto: CreateExamRegistrationDto): Promise<ExamRegistration> {
     const exam = await this.em.findOne(Exam, { id: dto.examId });
-    if (!exam) throw new NotFoundException('Không tìm thấy bài thi');
+    if (!exam) throw new NotFoundException('Không tìm thấy kì thi');
 
     const student = await this.em.findOne(Student, { id: dto.studentId });
     if (!student) throw new NotFoundException('Không tìm thấy sinh viên');
@@ -59,7 +59,7 @@ export class ExamRegistrationService {
       { id },
       { populate: ['exam', 'student'] },
     );
-    if (!reg) throw new NotFoundException('Không tìm thấy đăng ký thi');
+    if (!reg) throw new NotFoundException('Không tìm thấy phiếu dự thi');
     return reg;
   }
 
@@ -68,7 +68,7 @@ export class ExamRegistrationService {
     dto: UpdateExamRegistrationDto,
   ): Promise<ExamRegistration> {
     const reg = await this.em.findOne(ExamRegistration, { id });
-    if (!reg) throw new NotFoundException('Không tìm thấy đăng ký thi');
+    if (!reg) throw new NotFoundException('Không tìm thấy phiếu dự thi');
 
     const cleanDto = Object.fromEntries(
       Object.entries(dto).filter(([_, v]) => v !== undefined),
@@ -76,7 +76,7 @@ export class ExamRegistrationService {
 
     if (cleanDto['examId']) {
       const exam = await this.em.findOne(Exam, { id: cleanDto['examId'] });
-      if (!exam) throw new NotFoundException('Không tìm thấy bài thi');
+      if (!exam) throw new NotFoundException('Không tìm thấy kì thi');
       cleanDto['exam'] = exam;
       delete cleanDto['examId'];
     }

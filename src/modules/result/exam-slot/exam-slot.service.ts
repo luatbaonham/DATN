@@ -31,9 +31,7 @@ export class ExamSlotService {
     const { page = 1, limit = 10, slotName } = filter;
     const offset = (page - 1) * limit;
 
-    const qb = this.em
-      .createQueryBuilder(ExamSlot, 'es')
-      .leftJoinAndSelect('es.examSession', 'session');
+    const qb = this.em.createQueryBuilder(ExamSlot, 'es');
 
     if (slotName)
       qb.andWhere('LOWER(es.slot_name) LIKE LOWER(?)', [`%${slotName}%`]);
@@ -61,15 +59,6 @@ export class ExamSlotService {
     const cleanDto = Object.fromEntries(
       Object.entries(dto).filter(([_, v]) => v !== undefined),
     );
-
-    if (cleanDto['examSessionId']) {
-      const session = await this.em.findOne(ExamSession, {
-        id: cleanDto['examSessionId'],
-      });
-      if (!session) throw new NotFoundException('Không tìm thấy đợt thi');
-      cleanDto['examSession'] = session;
-      delete cleanDto['examSessionId'];
-    }
 
     this.em.assign(slot, cleanDto);
     await this.em.persistAndFlush(slot);

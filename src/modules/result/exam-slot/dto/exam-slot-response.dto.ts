@@ -22,11 +22,6 @@ export class ExamSlotResponseDto {
   @Expose()
   description?: string;
 
-  @ApiProperty({ type: ExamSlotResponseDto })
-  @Expose()
-  @Type(() => ExamSlotResponseDto)
-  examSession!: ExamSlotResponseDto;
-
   @ApiProperty()
   @Expose()
   createdAt?: Date;
