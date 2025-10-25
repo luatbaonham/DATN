@@ -37,7 +37,7 @@ export class ExamRegistrationController {
   constructor(private readonly examRegService: ExamRegistrationService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Lấy danh sách đăng ký thi' })
+  @ApiOperation({ summary: 'Lấy danh sách phiếu dự thi' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async findAll(
@@ -47,7 +47,7 @@ export class ExamRegistrationController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Chi tiết đăng ký thi' })
+  @ApiOperation({ summary: 'Chi tiết phiếu dự thi' })
   @ApiResponse({ status: 200, type: ExamRegistrationResponseDto })
   async findOne(
     @Param('id', ParseIntPipe) id: number,
@@ -59,7 +59,7 @@ export class ExamRegistrationController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Tạo đăng ký thi mới' })
+  @ApiOperation({ summary: 'Tạo phiếu dự thi mới' })
   @ApiResponse({ status: 200, type: ExamRegistrationResponseDto })
   async create(
     @Body() dto: CreateExamRegistrationDto,
@@ -71,7 +71,7 @@ export class ExamRegistrationController {
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Cập nhật đăng ký thi' })
+  @ApiOperation({ summary: 'Cập nhật phiếu dự thi' })
   @ApiBody({ type: UpdateExamRegistrationDto })
   @ApiResponse({ status: 200, type: ExamRegistrationResponseDto })
   async update(
@@ -85,7 +85,7 @@ export class ExamRegistrationController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Xoá đăng ký thi' })
+  @ApiOperation({ summary: 'Xoá phiếu dự thi' })
   async remove(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ success: boolean }> {
