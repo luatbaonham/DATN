@@ -25,6 +25,7 @@ import { ExamModule } from '@modules/result/exam/exam.module';
 import { ExamRegistrationModule } from '@modules/result/exam-registration/exam-registration.module';
 import { ExamSlotModule } from '@modules/result/exam-slot/exam-slot.module';
 import { ExamSupervisorModule } from '@modules/result/exam-supervisor/exam-supervisor.module';
+import { ExamGroupingModule } from '@modules/algorithm-input/exam-group-create/exam-grouping.module';
 @Module({
   imports: [
     MikroOrmModule.forRoot(config),
@@ -56,7 +57,8 @@ import { ExamSupervisorModule } from '@modules/result/exam-supervisor/exam-super
     ExamModule,
     ExamSlotModule,
     ExamRegistrationModule,
-    ExamSupervisorModule, 
+    ExamSupervisorModule,
+    ExamGroupingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

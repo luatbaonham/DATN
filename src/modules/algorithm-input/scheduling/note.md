@@ -1,0 +1,1 @@
+# sau khi tạo mới population lần 2 thì 2 gen đầu sẻ k cần tính lại vì nó mặc đinh lấy 2 gen tốt nhất r

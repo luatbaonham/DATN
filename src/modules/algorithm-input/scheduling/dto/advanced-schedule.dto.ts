@@ -1,108 +1,166 @@
-// src/scheduling/dto/advanced-schedule.dto.ts
+// ./dto/advanced-schedule.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsInt,
+  IsNotEmpty,
   IsString,
   ValidateNested,
-  ArrayMinSize,
-  IsInt,
-  Min,
+  IsBoolean,
   IsOptional,
+  Min,
+  IsDateString, // <-- THÊM MỚI
 } from 'class-validator';
 
-// --- Các thành phần của Input ---
+// ----------------------------------------------------------------
+// (Không thay đổi các DTO con: ExamGroupDto, RoomDto, ProctorDto, StudentDto, ConstraintsDto)
+// ----------------------------------------------------------------
 
-// Thêm "export" ở đây
-export class StudentDto {
-  @ApiProperty()
+export class ExamGroupDto {
+  @ApiProperty({
+    description: 'ID duy nhất cho nhóm thi (ví dụ: "GT1-G1")',
+    example: 'GT1-G1',
+  })
   @IsString()
-  studentId!: string;
+  @IsNotEmpty()
+  examGroupId!: string;
 
-  @ApiProperty({ type: [String] })
-  @IsArray()
-  @IsString({ each: true })
-  subjects!: string[];
-}
-
-// Thêm "export" ở đây
-export class SubjectDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Mã môn học gốc (ví dụ: "GT1")',
+    example: 'GT1',
+  })
   @IsString()
-  subjectId!: string;
+  @IsNotEmpty()
+  courseCode!: string;
 
-  @ApiProperty({ description: 'Thời gian thi tính bằng phút' })
+  @ApiProperty({
+    description: 'Số lượng sinh viên trong nhóm thi này',
+    example: 80,
+  })
   @IsInt()
-  @Min(15)
+  @Min(1)
+  studentCount!: number;
+
+  @ApiProperty({
+    description: 'Thời lượng thi của môn này (phút)',
+    example: 90,
+  })
+  @IsInt()
+  @Min(30)
   duration!: number;
 }
 
-// Thêm "export" ở đây
 export class RoomDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'P101' })
   @IsString()
+  @IsNotEmpty()
   roomId!: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 100 })
   @IsInt()
   @Min(1)
   capacity!: number;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'D9' })
   @IsString()
+  @IsNotEmpty()
   location!: string;
 }
 
-// Thêm "export" ở đây
 export class ProctorDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'GV001' })
   @IsString()
+  @IsNotEmpty()
   proctorId!: string;
 }
 
-// Thêm "export" ở đây
+export class StudentDto {
+  @ApiProperty({ example: 'SV001' })
+  @IsString()
+  @IsNotEmpty()
+  studentId!: string;
+
+  @ApiProperty({
+    description: 'Danh sách các ID nhóm thi mà sinh viên này tham gia',
+    example: ['GT1-G1', 'VL1-G3'],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  examGroups!: string[];
+}
+
 export class ConstraintsDto {
-  @ApiProperty({ required: false, default: 2 })
+  @ApiProperty({
+    description: 'Số ca thi tối đa mỗi ngày cho 1 sinh viên',
+    example: 2,
+    required: false,
+  })
   @IsOptional()
   @IsInt()
   @Min(1)
-  maxExamsPerStudentPerDay?: number = 2;
+  maxExamsPerStudentPerDay?: number;
 
-  @ApiProperty({ required: false, default: true })
+  @ApiProperty({
+    description:
+      'Tránh việc sinh viên phải di chuyển giữa các địa điểm trong 1 ngày',
+    example: true,
+    required: false,
+  })
   @IsOptional()
-  avoidInterLocationTravel?: boolean = true;
+  @IsBoolean()
+  avoidInterLocationTravel?: boolean;
 }
 
-// --- DTO chính cho Request Body ---
-
+// ----------------------------------------------------------------
+// THAY ĐỔI LỚN: Cập nhật DTO chính
+// ----------------------------------------------------------------
 export class AdvancedScheduleDto {
-  @ApiProperty({ type: [StudentDto] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => StudentDto)
-  @ArrayMinSize(1)
-  students!: StudentDto[];
+  @ApiProperty({
+    description: 'Ngày bắt đầu kỳ thi (định dạng YYYY-MM-DD)',
+    example: '2025-05-01',
+  })
+  @IsDateString()
+  startDate!: string; // <-- THÊM MỚI
 
-  @ApiProperty({ type: [SubjectDto] })
+  @ApiProperty({
+    description: 'Ngày kết thúc kỳ thi (định dạng YYYY-MM-DD)',
+    example: '2025-06-30',
+  })
+  @IsDateString()
+  endDate!: string; // <-- THÊM MỚI
+
+  @ApiProperty({
+    description: 'Danh sách các ngày lễ cần loại bỏ (định dạng YYYY-MM-DD)',
+    example: ['2025-05-01', '2025-05-15'],
+  })
+  @IsArray()
+  @IsDateString({}, { each: true })
+  holidays!: string[]; // <-- THÊM MỚI
+
+  @ApiProperty({ type: [ExamGroupDto] })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => SubjectDto)
-  @ArrayMinSize(1)
-  subjects!: SubjectDto[];
+  @Type(() => ExamGroupDto)
+  examGroups!: ExamGroupDto[];
 
   @ApiProperty({ type: [RoomDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => RoomDto)
-  @ArrayMinSize(1)
   rooms!: RoomDto[];
 
   @ApiProperty({ type: [ProctorDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProctorDto)
-  @ArrayMinSize(1)
   proctors!: ProctorDto[];
+
+  @ApiProperty({ type: [StudentDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => StudentDto)
+  students!: StudentDto[];
 
   @ApiProperty({ required: false })
   @IsOptional()
