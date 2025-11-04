@@ -1,12 +1,12 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { SchedulingService } from './scheduling.service';
+import { SchedulingServiceV2 } from './schedulingV2.service';
 import { AdvancedScheduleDto } from './dto/advanced-schedule.dto'; // Thay đổi DTO
 import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('scheduling')
 @Controller('scheduling')
 export class SchedulingController {
-  constructor(private readonly schedulingService: SchedulingService) {}
+  constructor(private readonly schedulingService: SchedulingServiceV2) {}
 
   @Post('generate-advanced') // Tạo endpoint mới
   @HttpCode(HttpStatus.OK)

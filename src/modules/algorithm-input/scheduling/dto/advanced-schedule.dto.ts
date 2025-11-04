@@ -110,6 +110,20 @@ export class ConstraintsDto {
   @IsOptional()
   @IsBoolean()
   avoidInterLocationTravel?: boolean;
+  @ApiProperty({
+    description: 'Số ngày tối thiểu',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  idealMinDaysBetweenExams?: number; // Số ngày CÁCH NHAU lý tưởng TỐI THIỂU
+  @ApiProperty({
+    description: 'Số này tối đa',
+    example: 4,
+    required: false,
+  })
+  @IsOptional()
+  idealMaxDaysBetweenExams?: number; // Số ngày CÁCH NHAU lý tưởng TỐI ĐA
 }
 
 // ----------------------------------------------------------------
