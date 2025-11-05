@@ -1,19 +1,40 @@
-import { Injectable } from '@nestjs/common';
-import { AdvancedScheduleDto } from './dto/advanced-schedule.dto';
-import {
-  RoomDto,
-  ExamGroupDto,
-  ProctorDto,
-  ConstraintsDto,
-} from './dto/advanced-schedule.dto';
-
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/core';
+import { ConstraintsDto } from './dto/advanced-schedule.dto';
+import { Room } from '@modules/algorithm-input/room/entities/room.entity';
+import { Lecturer } from '@modules/core-data/lecturer/entities/lecturer.entity';
+import { ExamGroup } from '@modules/algorithm-input/exam-group/entities/exam-group.entity';
+import { StudentExamGroup } from '@modules/algorithm-input/student-exam-group/entities/student-exam-group.entity';
+import { ScheduleRequestDto } from './dto/schedule-request.dto';
+import { Exam } from '@modules/result/exam/entities/exam.entity';
+import { ExamRegistration } from '@modules/result/exam-registration/entities/exam-registration.entity';
+import { ExamSupervisor } from '@modules/result/exam-supervisor/entities/exam-supervisor.entity';
+import { Student } from '@modules/core-data/students/entities/student.entity';
+import { EntityManager } from '@mikro-orm/mysql';
+import { ExamSlot } from '@modules/result/exam-slot/entities/exam-slot.entity';
 // --- Định nghĩa cấu trúc dữ liệu cho thuật toán ---
 type Gene = {
-  examGroupId: string;
-  roomId: string;
-  timeSlotId: number; // ID duy nhất của kíp thi
-  proctorId: string;
+  examGroupId: number;
+  roomId: number;
+  timeSlotId: number;
+  proctorId: number;
 };
+interface RoomDto {
+  roomId: number; // <-- THAY ĐỔI
+  capacity: number;
+  location: number; // Giữ location code (string) để check
+}
+interface ProctorDto {
+  proctorId: number; // <-- THAY ĐỔI
+}
+interface ExamGroupDto {
+  examGroupId: number; // <-- THAY ĐỔI
+  courseCode: number;
+  duration: number;
+  studentCount: number;
+}
+
 type Chromosome = Gene[];
 
 // Cấu trúc đầu ra chi tiết
@@ -34,8 +55,8 @@ type SimplifiedExamEvent = {
 type TimetableDay = {
   day: string; // "Thứ Hai"
   date: string; // "2025-05-05"
-  morning: SimplifiedExamEvent[]; // <-- THAY ĐỔI
-  afternoon: SimplifiedExamEvent[]; // <-- THAY ĐỔI
+  morning: SimplifiedExamEvent[];
+  afternoon: SimplifiedExamEvent[];
 };
 
 // --- THAY ĐỔI: TimeSlot giờ sẽ chứa đối tượng Date cụ thể ---
@@ -64,21 +85,36 @@ const SOFT_CONSTRAINT_PENALTY = {
 const DAILY_START_HOURS = [8, 10, 14, 16]; // 8h, 10h, 14h, 16h
 
 @Injectable()
-export class SchedulingServiceV2 {
-  private studentsByExamGroup!: Map<string, string[]>;
-  private examGroupsById!: Map<string, ExamGroupDto>;
+export class SchedulingService {
+  private studentsByExamGroup!: Map<number, number[]>;
+  private examGroupsById!: Map<number, ExamGroupDto>;
   private rooms!: RoomDto[];
   private proctors!: ProctorDto[];
   private constraints!: ConstraintsDto;
   private timeSlots!: TimeSlot[];
-  // CT để tìm kiếm nhanh hơn
-  private roomsById!: Map<string, RoomDto>;
-  private proctorsById!: Map<string, ProctorDto>;
+  private roomsById!: Map<number, RoomDto>;
+  private proctorsById!: Map<number, ProctorDto>;
   private timeSlotsById!: Map<number, TimeSlot>; // Key là timeSlot.id
-  // --- Hàm chính để chạy thuật toán ---
-  public generateAdvanced(dto: AdvancedScheduleDto) {
-    this.initializeProblem(dto);
 
+  constructor(
+    private readonly em: EntityManager,
+    @InjectRepository(Room)
+    private readonly roomRepository: EntityRepository<Room>,
+    @InjectRepository(Lecturer)
+    private readonly lecturerRepository: EntityRepository<Lecturer>,
+    @InjectRepository(ExamGroup)
+    private readonly examGroupRepository: EntityRepository<ExamGroup>,
+    @InjectRepository(StudentExamGroup)
+    private readonly studentExamGroupRepository: EntityRepository<StudentExamGroup>,
+    @InjectRepository(Exam)
+    private readonly examRepository: EntityRepository<Exam>,
+    @InjectRepository(ExamRegistration)
+    private readonly examRegistrationRepository: EntityRepository<ExamRegistration>,
+    @InjectRepository(ExamSupervisor)
+    private readonly examSupervisorRepository: EntityRepository<ExamSupervisor>,
+  ) {}
+  public async generateAdvanced(dto: ScheduleRequestDto) {
+    await this.initializeProblem(dto);
     // Kiểm tra nếu không có kíp thi nào hợp lệ
     if (this.timeSlots.length === 0) {
       return {
@@ -89,6 +125,7 @@ export class SchedulingServiceV2 {
         executionTimeMs: 0,
       };
     }
+
     let loopGeneration = 0;
     const startTime = Date.now();
     let population = this.initializePopulation();
@@ -120,7 +157,64 @@ export class SchedulingServiceV2 {
     // --- KẾT THÚC ĐO THỜI GIAN ---
     const endTime = Date.now();
     const executionTimeMs = endTime - startTime;
+    // Nếu không tìm thấy lịch hợp lệ
+    if (!bestSchedule) {
+      return {
+        fitness: bestFitness,
+        isOptimal: false,
+        error: 'Không tìm thấy lịch thi hợp lệ.',
+        timetable: [],
+        loopGeneration,
+        executionTimeMs,
+        executionTimeSeconds: parseFloat((executionTimeMs / 1000).toFixed(3)),
+      };
+    }
+    // --- 1. LƯU VÀO DATABASE (TRỰC TIẾP) ---
+    try {
+      await this.em.transactional(async (em) => {
+        for (const gene of bestSchedule!) {
+          await this.deleteScheduleBySessionId(dto.examSessionId);
+          const examGroup = this.examGroupsById.get(gene.examGroupId);
+          const timeSlot = this.timeSlotsById.get(gene.timeSlotId);
+          const students = this.studentsByExamGroup.get(gene.examGroupId) || [];
+          if (!examGroup || !timeSlot) {
+            console.warn(`Bỏ qua Gene vì thiếu dữ liệu: ${gene.examGroupId}`);
+            continue;
+          }
+          const exam = new Exam();
+          exam.examGroup = em.getReference(ExamGroup, gene.examGroupId);
+          exam.room = em.getReference(Room, gene.roomId);
+          exam.examDate = timeSlot.date;
+          exam.duration = examGroup.duration;
+          exam.status = 'Draft';
+          exam.examSlot = em.getReference(ExamSlot, 1);
+          await em.persist(exam);
+
+          const supervisor = new ExamSupervisor();
+          supervisor.exam = exam;
+          supervisor.lecturer = em.getReference(Lecturer, gene.proctorId);
+          supervisor.role = 'Supervisor'; // lam sao để xóa nó trong db
+          await em.persist(supervisor);
+
+          const registrations: ExamRegistration[] = [];
+          for (const studentId of students) {
+            const reg = new ExamRegistration();
+            reg.exam = exam;
+            reg.student = em.getReference(Student, studentId);
+            registrations.push(reg);
+          }
+          await em.persist(registrations);
+        }
+      });
+    } catch (error) {
+      console.error('LỖI khi lưu lịch thi vào DB:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new InternalServerErrorException(
+        `Lỗi khi lưu vào database: ${message}`,
+      );
+    }
     const result = this.formatOutput(bestSchedule);
+
     return {
       ...result,
       loopGeneration: loopGeneration,
@@ -128,7 +222,47 @@ export class SchedulingServiceV2 {
       executionTimeSeconds: parseFloat((executionTimeMs / 1000).toFixed(3)),
     };
   }
+  public async deleteScheduleBySessionId(sessionId: number): Promise<{
+    deletedExams: number;
+    deletedRegistrations: number;
+    deletedSupervisors: number;
+  }> {
+    // 1. Tìm tất cả các Exam thuộc ExamSession này (qua ExamGroup)
+    const examsToDelete = await this.examRepository.find({
+      examGroup: { examSession: sessionId },
+    });
 
+    if (examsToDelete.length === 0) {
+      return {
+        deletedExams: 0,
+        deletedRegistrations: 0,
+        deletedSupervisors: 0,
+      };
+    }
+
+    const examIds = examsToDelete.map((e) => e.id);
+
+    // 2. Xóa tất cả ExamRegistration liên quan
+    const regDeleteResult = await this.examRegistrationRepository.nativeDelete({
+      exam: { $in: examIds },
+    });
+
+    // 3. Xóa tất cả ExamSupervisor liên quan
+    const supDeleteResult = await this.examSupervisorRepository.nativeDelete({
+      exam: { $in: examIds },
+    });
+
+    // 4. Xóa các Exam
+    const examDeleteResult = await this.examRepository.nativeDelete({
+      id: { $in: examIds },
+    });
+
+    return {
+      deletedExams: examDeleteResult,
+      deletedRegistrations: regDeleteResult,
+      deletedSupervisors: supDeleteResult,
+    };
+  }
   private formatDateToYYYYMMDD(date: Date): string {
     const y = date.getFullYear();
     const m = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -159,33 +293,70 @@ export class SchedulingServiceV2 {
     }
     return newArr;
   }
-  private initializeProblem(dto: AdvancedScheduleDto): void {
-    // 1 key examGroupId -> list studentId (kiểm tra sinh viên trong nhóm)
+  private async initializeProblem(dto: ScheduleRequestDto): Promise<void> {
     this.studentsByExamGroup = new Map();
-    // [key, value] examGroupId -> ExamGroupDto (lấy thông tin nhóm thi)
-    this.examGroupsById = new Map(
-      dto.examGroups.map((g) => [g.examGroupId, g]),
-    );
-
-    dto.students.forEach((student) => {
-      student.examGroups.forEach((examGroupId) => {
-        if (!this.studentsByExamGroup.has(examGroupId)) {
-          this.studentsByExamGroup.set(examGroupId, []);
-        }
-        // groupId -> list studentId
-        this.studentsByExamGroup.get(examGroupId)!.push(student.studentId);
-      });
-    });
-
-    // 2. Lưu trữ phòng, giám thị, ràng buộc (Như cũ)
-    this.rooms = dto.rooms;
-    this.proctors = dto.proctors;
-    this.constraints = dto.constraints ?? {};
-
     // CT để tìm kiếm nhanh hơn
-    this.roomsById = new Map(dto.rooms.map((r) => [r.roomId, r]));
-    this.proctorsById = new Map(dto.proctors.map((p) => [p.proctorId, p]));
+    this.constraints = {
+      ...(dto.constraints || {}), // Ghi đè bằng DTO nếu nó tồn tại
+    };
+    const roomEntities = await this.roomRepository.find({
+      id: { $in: dto.roomIds },
+    });
+    const lecturerEntities = await this.lecturerRepository.find({
+      id: { $in: dto.lecturerIds },
+    });
+    this.rooms = roomEntities.map(
+      (r): RoomDto => ({
+        roomId: r.id, // Dùng 'code' làm ID
+        capacity: r.capacity,
+        location: r.location.id, // Giả sử location có 'id'
+      }),
+    );
+    this.proctors = lecturerEntities.map(
+      (l): ProctorDto => ({
+        proctorId: l.id, // Dùng 'lecturerCode' làm ID
+      }),
+    );
+    // 3. Tải các Nhóm thi (ExamGroup) thuộc Đợt thi (ExamSession)
+    const examGroupEntities = await this.examGroupRepository.find(
+      { examSession: dto.examSessionId },
+      { populate: ['course'] },
+    );
+    const examGroupIds = examGroupEntities.map((eg) => eg.id);
+    // 4. Tải liên kết Sinh viên - Nhóm thi (StudentExamGroup)
+    const studentGroupLinks = await this.studentExamGroupRepository.find(
+      { examGroup: { $in: examGroupIds } },
+      { populate: ['student'] }, // Populate 'student' để lấy studentId
+    );
+    this.studentsByExamGroup = new Map<number, number[]>();
+    this.examGroupsById = new Map<number, ExamGroupDto>();
+    for (const link of studentGroupLinks) {
+      // Lấy 'id' của examGroup từ entity đã tải
+      const examGroupId = examGroupEntities.find(
+        (eg) => eg.id === link.examGroup.id,
+      )!.id;
+      const studentId = (link.student as any).id;
+      if (!this.studentsByExamGroup.has(examGroupId)) {
+        this.studentsByExamGroup.set(examGroupId, []);
+      }
+      this.studentsByExamGroup.get(examGroupId)!.push(studentId);
+    }
+    for (const eg of examGroupEntities) {
+      const studentCount = this.studentsByExamGroup.get(eg.id)?.length || 0;
 
+      const duration = (eg.course as any).durationCourseExam; // Cần thay thế 'duration' này
+      if (typeof duration !== 'number') {
+        throw new Error(`Không tìm thấy duration cho môn học ${eg.course.id}`);
+      }
+      this.examGroupsById.set(eg.id, {
+        examGroupId: eg.id,
+        courseCode: eg.course.id,
+        duration: duration,
+        studentCount: studentCount, // Sử dụng số lượng SV thực tế
+      });
+    }
+    this.roomsById = new Map(this.rooms.map((r) => [r.roomId, r]));
+    this.proctorsById = new Map(this.proctors.map((p) => [p.proctorId, p]));
     // 3. --- THAY ĐỔI LỚN: TẠO TIMESLOTS HỢP LỆ ---
     this.timeSlots = [];
     let id = 0;
@@ -331,7 +502,7 @@ export class SchedulingServiceV2 {
       }
     } // kết thúc vòng lặp Nhóm thi
     // Sắp xếp lại chromosome theo thứ tự ID ban đầu (quan trọng cho Crossover)
-    chromosome.sort((a, b) => a.examGroupId.localeCompare(b.examGroupId));
+    chromosome.sort((a, b) => a.examGroupId - b.examGroupId);
     return chromosome;
   }
   private calculateFitness(chromosome: Chromosome): number {
@@ -342,9 +513,9 @@ export class SchedulingServiceV2 {
     const proctorSchedule = new Map<string, Gene[]>(); // key: "proctorId-timeSlotId"
     const studentSchedule = new Map<string, Gene[]>(); // key: "studentId-timeSlotId"
     const studentDailySchedule = new Map<string, Gene[]>(); // key: "studentId-date"
-    const studentLocationSchedule = new Map<string, string[]>(); // key: "studentId-date"
+    const studentLocationSchedule = new Map<string, number[]>(); // key: "studentId-date"
     // Mục đích: kiểm tra khoảng cách ngày thi
-    const studentExamSlots = new Map<string, TimeSlot[]>();
+    const studentExamSlots = new Map<number, TimeSlot[]>();
     for (const gene of chromosome) {
       // CT
       const room = this.roomsById.get(gene.roomId)!;
@@ -426,65 +597,8 @@ export class SchedulingServiceV2 {
         }
       });
     }
-    // --- THÊM MỚI: TÍNH ĐIỂM PHẠT KHOẢNG CÁCH NGÀY THI ---
-    // const minIdeal = this.constraints.idealMinDaysBetweenExams;
-    // const maxIdeal = this.constraints.idealMaxDaysBetweenExams;
-    // if (minIdeal && maxIdeal && minIdeal > 0 && maxIdeal >= minIdeal) {
-    //   const msPerDay = 1000 * 60 * 60 * 24;
-
-    //   // Duyệt qua lịch thi của từng sinh viên
-    //   studentExamSlots.forEach((slots, studentId) => {
-    //     if (slots.length < 2) return; // Chỉ có 1 môn, không cần kiểm tra
-
-    //     // Lấy ra các ngày thi duy nhất (đã chuẩn hóa về 00:00)
-    //     const uniqueDayTimestamps = new Set<number>();
-    //     slots.forEach((slot) => {
-    //       uniqueDayTimestamps.add(new Date(slot.date.toDateString()).getTime());
-    //     });
-
-    //     // Sắp xếp các ngày thi
-    //     const sortedDays = Array.from(uniqueDayTimestamps).sort(
-    //       (a, b) => a - b,
-    //     );
-
-    //     if (sortedDays.length < 2) return;
-
-    //     // So sánh các ngày thi liên tiếp
-    //     for (let i = 0; i < sortedDays.length - 1; i++) {
-    //       const time1 = sortedDays[i];
-    //       const time2 = sortedDays[i + 1];
-
-    //       const diffMs = time2 - time1;
-    //       // Số ngày chênh lệch (VD: 0, 1, 2...)
-    //       const diffDays = Math.round(diffMs / msPerDay);
-
-    //       let penaltyWeight = 0;
-
-    //       // 1. Phạt nếu quá gần (VD: minIdeal = 1, diffDays = 0)
-    //       if (diffDays < minIdeal) {
-    //         // Phạt (1-0) * 25 = 25 điểm
-    //         penaltyWeight = minIdeal - diffDays;
-    //       }
-    //       // 2. Phạt nếu quá xa (VD: maxIdeal = 4, diffDays = 5)
-    //       else if (diffDays > maxIdeal) {
-    //         // Phạt (5-4) * 25 = 25 điểm
-    //         // Phạt (6-4) * 25 = 50 điểm (càng xa càng phạt nặng)
-    //         penaltyWeight = diffDays - maxIdeal;
-    //       }
-    //       // 3. Nếu 1 <= diffDays <= 4 -> penaltyWeight = 0 (Lý tưởng)
-
-    //       if (penaltyWeight > 0) {
-    //         softConflicts +=
-    //           penaltyWeight * SOFT_CONSTRAINT_PENALTY.EXAM_SPACING;
-    //       }
-    //     }
-    //   });
-    // }
     return hardConflicts * HARD_CONSTRAINT_PENALTY + softConflicts;
   }
-
-  // --- Các hàm GA (Không cần thay đổi) ---
-
   private createNewGeneration(
     populationWithFitness: { chromosome: Chromosome; fitness: number }[],
   ): Chromosome[] {
@@ -504,7 +618,6 @@ export class SchedulingServiceV2 {
     }
     return newPopulation;
   }
-
   private tournamentSelection(
     populationWithFitness: { chromosome: Chromosome; fitness: number }[],
   ): Chromosome {
@@ -522,11 +635,6 @@ export class SchedulingServiceV2 {
   }
 
   private crossover(parent1: Chromosome, parent2: Chromosome): Chromosome {
-    // const crossoverPoint = Math.floor(Math.random() * parent1.length);
-    // return [
-    //   ...parent1.slice(0, crossoverPoint),
-    //   ...parent2.slice(crossoverPoint),
-    // ];
     const child: Chromosome = [];
     for (let i = 0; i < parent1.length; i++) {
       if (Math.random() < 0.5) {
@@ -613,7 +721,7 @@ export class SchedulingServiceV2 {
 
       // --- Đột biến Giám thị ---
       case 2: {
-        let newProctorId: string;
+        let newProctorId: number;
         let isConflict = true;
         attempts = 0;
 
@@ -641,16 +749,6 @@ export class SchedulingServiceV2 {
 
     return chromosome;
   }
-
-  /**
-   * TẠO MỚI: Hàm trợ giúp cho `mutate`
-   * Kiểm tra xem một gien (đã bị đột biến)
-   * có gây xung đột với các gien KHÁC trong lịch hay không.
-   * @param chromosome Lịch thi đầy đủ
-   * @param mutatedGene Gien đã bị thay đổi
-   * @param mutatedGeneIndex Vị trí của gien đó
-   * @returns true nếu CÓ xung đột, false nếu KHÔNG
-   */
   private checkGeneConflict(
     chromosome: Chromosome,
     mutatedGene: Gene,
@@ -731,8 +829,8 @@ export class SchedulingServiceV2 {
         timetableMap.set(dateKey, {
           day: dayName,
           date: dateKey,
-          morning: [], // <-- THAY ĐỔI: Khởi tạo mảng rỗng
-          afternoon: [], // <-- THAY ĐỔI: Khởi tạo mảng rỗng
+          morning: [], // Khởi tạo mảng rỗng
+          afternoon: [], // Khởi tạo mảng rỗng
         });
       }
 
@@ -750,12 +848,12 @@ export class SchedulingServiceV2 {
         time: `${startTime} - ${endTime}`,
         date: dateKey,
         dayOfWeek: dayName,
-        examGroup: gene.examGroupId,
-        courseCode: examGroup.courseCode,
+        examGroup: gene.examGroupId.toString(),
+        courseCode: examGroup.courseCode.toString(),
         duration: examGroup.duration,
-        roomId: gene.roomId, // <-- THÊM MỚI
-        location: room.location, // <-- THÊM MỚI
-        proctor: gene.proctorId,
+        roomId: gene.roomId.toString(), // <-- THÊM MỚI
+        location: room.location.toString(), // <-- THÊM MỚI
+        proctor: gene.proctorId.toString(),
         studentCount: studentCount, // <-- Đã lấy số lượng
         // Không còn mảng students
       };

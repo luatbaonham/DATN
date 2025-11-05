@@ -28,6 +28,9 @@ export class Course {
   @Property({ type: 'int', default: 0 })
   expected_students!: number; // Số SV dự kiến đăng ký
 
+  @Property({ type: 'int' })
+  durationCourseExam?: number;
+
   @Property({ default: true })
   is_active!: boolean; // Môn học đang mở/khóa
 

@@ -74,4 +74,36 @@ export class ExamGroupsController {
   async remove(@Param('id', ParseIntPipe) id: number) {
     return { success: await this.service.remove(id) };
   }
+
+  @Delete()
+  @ApiOperation({
+    summary: 'Xóa tất cả exam groups nếu chưa có exam',
+    description:
+      'Xóa tất cả exam groups (và student_exam_groups) nếu chưa có lịch thi nào được tạo. Có thể filter theo exam_session_id.',
+  })
+  @ApiQuery({
+    name: 'exam_session_id',
+    required: false,
+    type: Number,
+    description:
+      'ID của đợt thi (nếu muốn xóa exam groups của 1 đợt thi cụ thể)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Kết quả xóa',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        deleted: { type: 'number' },
+        message: { type: 'string' },
+      },
+    },
+  })
+  async removeAllIfNoExams(
+    @Query('exam_session_id', new ParseIntPipe({ optional: true }))
+    examSessionId?: number,
+  ) {
+    return this.service.removeAllIfNoExams(examSessionId);
+  }
 }

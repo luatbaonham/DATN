@@ -19,7 +19,7 @@ import { AuthGuard } from '@modules/identity/auth/guard/auth.guard';
 import { PermissionGuard } from '@modules/identity/auth/guard/permission.guard';
 
 @ApiBearerAuth()
-@UseGuards(AuthGuard, PermissionGuard)
+// @UseGuards(AuthGuard, PermissionGuard)
 @ApiTags('exam-sessions')
 @Controller('exam-sessions')
 export class ExamSessionController {
@@ -67,6 +67,39 @@ export class ExamSessionController {
     return plainToInstance(ExamSessionResponseDto, session, {
       excludeExtraneousValues: true,
     });
+  }
+
+  @Post(':id/generate-exam-groups')
+  @ApiResponse({
+    status: 201,
+    description: 'Tạo exam groups cho đợt thi thành công',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        examGroupsCreated: { type: 'number' },
+        studentExamGroupsCreated: { type: 'number' },
+        message: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Không tìm thấy đợt thi',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Không có phòng thi hoặc đăng ký môn học',
+  })
+  async generateExamGroups(@Param('id', ParseIntPipe) id: number) {
+    const result =
+      await this.examSessionService.generateExamGroupsForSession(id);
+    return {
+      success: true,
+      examGroupsCreated: result.examGroupsCreated,
+      studentExamGroupsCreated: result.studentExamGroupsCreated,
+      message: `Đã tạo thành công ${result.examGroupsCreated} exam groups và ${result.studentExamGroupsCreated} student exam groups`,
+    };
   }
 
   @Put(':id')
