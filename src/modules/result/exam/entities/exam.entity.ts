@@ -26,7 +26,7 @@ export class Exam {
   @ManyToOne(() => ExamSlot)
   examSlot!: ExamSlot;
 
-  @Property()
+  @Property({ fieldName: 'exam_date' })
   examDate!: Date;
 
   @Property()
@@ -41,9 +41,13 @@ export class Exam {
   @OneToMany(() => ExamSupervisor, (sup) => sup.exam)
   supervisors = new Collection<ExamSupervisor>(this);
 
-  @Property({ onCreate: () => new Date() })
+  @Property({ onCreate: () => new Date(), fieldName: 'created_at' })
   createdAt?: Date;
 
-  @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
+  @Property({
+    onCreate: () => new Date(),
+    onUpdate: () => new Date(),
+    fieldName: 'updated_at',
+  })
   updatedAt?: Date;
 }

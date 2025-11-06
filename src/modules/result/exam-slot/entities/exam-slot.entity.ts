@@ -13,13 +13,13 @@ export class ExamSlot {
   @PrimaryKey()
   id!: number;
 
-  @Property()
+  @Property({ fieldName: 'slot_name' })
   slotName!: string;
 
-  @Property()
+  @Property({ fieldName: 'start_time' })
   startTime!: string; // HH:MM
 
-  @Property()
+  @Property({ fieldName: 'end_time' })
   endTime!: string; // HH:MM
 
   @Property({ nullable: true })
@@ -28,9 +28,13 @@ export class ExamSlot {
   @OneToMany(() => Exam, (exam) => exam.examSlot)
   exam = new Collection<Exam>(this);
 
-  @Property({ onCreate: () => new Date() })
+  @Property({ onCreate: () => new Date(), fieldName: 'created_at' })
   createdAt?: Date;
 
-  @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
+  @Property({
+    onCreate: () => new Date(),
+    onUpdate: () => new Date(),
+    fieldName: 'updated_at',
+  })
   updatedAt?: Date;
 }

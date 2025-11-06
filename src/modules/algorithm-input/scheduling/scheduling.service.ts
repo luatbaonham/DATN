@@ -176,7 +176,7 @@ export class SchedulingService {
       }
       this.studentsByExamGroup.get(examGroupId)!.push(studentId);
     }
-
+    // console.log('Students by Exam Group:', this.studentsByExamGroup);
     // Chuyển đổi thành các đối tượng Ga...
     const rooms: GaRoom[] = roomEntities.map((r) => ({
       roomId: r.id,

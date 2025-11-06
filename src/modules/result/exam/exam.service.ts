@@ -15,6 +15,10 @@ import { ExamSession } from '@modules/algorithm-input/exam-session/entities/exam
 import { ExamGroup } from '@modules/algorithm-input/exam-group/entities/exam-group.entity';
 import { Room } from '@modules/algorithm-input/room/entities/room.entity';
 import { ExamSlot } from '@modules/result/exam-slot/entities/exam-slot.entity';
+import { Student } from '@modules/core-data/students/entities/student.entity';
+import { Lecturer } from '@modules/core-data/lecturer/entities/lecturer.entity';
+import { ExamRegistration } from '@modules/result/exam-registration/entities/exam-registration.entity';
+import { ExamSupervisor } from '@modules/result/exam-supervisor/entities/exam-supervisor.entity';
 import { ExamTimetableFilterDto } from './dto/exam-timetable-filter.dto';
 import {
   ExamTimetableResponseDto,
@@ -95,13 +99,18 @@ export class ExamService {
   }
 
   async update(id: number, dto: UpdateExamDto): Promise<Exam> {
-    const exam = await this.em.findOne(Exam, { id });
+    const exam = await this.em.findOne(
+      Exam,
+      { id },
+      { populate: ['registrations', 'supervisors'] },
+    );
     if (!exam) throw new NotFoundException('Không tìm thấy kỳ thi');
 
     const cleanDto = Object.fromEntries(
       Object.entries(dto).filter(([_, v]) => v !== undefined),
     );
 
+    // Handle foreign key relations
     if (cleanDto['examSessionId']) {
       const session = await this.em.findOne(ExamSession, {
         id: cleanDto['examSessionId'],
@@ -124,13 +133,70 @@ export class ExamService {
       cleanDto['room'] = room;
       delete cleanDto['roomId'];
     }
-    if (cleanDto['examSlotId']) {
+    if (cleanDto['slotId']) {
       const slot = await this.em.findOne(ExamSlot, {
-        id: cleanDto['examSlotId'],
+        id: cleanDto['slotId'],
       });
       if (!slot) throw new NotFoundException('Không tìm thấy ca thi');
       cleanDto['examSlot'] = slot;
-      delete cleanDto['examSlotId'];
+      delete cleanDto['slotId'];
+    }
+
+    // Handle students update
+    if (dto.studentIds !== undefined) {
+      // Remove all existing registrations
+      await this.em.removeAndFlush(exam.registrations.getItems());
+
+      // Add new registrations
+      if (dto.studentIds.length > 0) {
+        const students = await this.em.find(Student, {
+          id: { $in: dto.studentIds },
+        });
+
+        const newRegistrations = students.map((student) =>
+          this.em.create(ExamRegistration, {
+            exam,
+            student,
+          }),
+        );
+
+        exam.registrations.set(newRegistrations);
+      }
+      delete cleanDto['studentIds'];
+    }
+
+    // Handle supervisors update
+    if (dto.supervisorIds !== undefined) {
+      // Remove all existing supervisors
+      await this.em.removeAndFlush(exam.supervisors.getItems());
+
+      // Add new supervisors
+      if (dto.supervisorIds.length > 0) {
+        const lecturerIds = dto.supervisorIds.map((s) => s.lecturerId);
+        const lecturers = await this.em.find(Lecturer, {
+          id: { $in: lecturerIds },
+        });
+
+        const newSupervisors = dto.supervisorIds.map((assignment) => {
+          const lecturer = lecturers.find(
+            (l) => l.id === assignment.lecturerId,
+          );
+          if (!lecturer) {
+            throw new NotFoundException(
+              `Không tìm thấy giảng viên với ID ${assignment.lecturerId}`,
+            );
+          }
+
+          return this.em.create(ExamSupervisor, {
+            exam,
+            lecturer,
+            role: assignment.role,
+          });
+        });
+
+        exam.supervisors.set(newSupervisors);
+      }
+      delete cleanDto['supervisorIds'];
     }
 
     this.em.assign(exam, cleanDto);
@@ -165,18 +231,19 @@ export class ExamService {
 
     // Lọc theo ngày
     if (filter.startDate) {
-      qb.andWhere('e.examDate >= ?', [new Date(filter.startDate)]);
+      qb.andWhere({ examDate: { $gte: new Date(filter.startDate) } });
     }
     if (filter.endDate) {
-      qb.andWhere('e.examDate <= ?', [new Date(filter.endDate)]);
+      const endDate = new Date(filter.endDate);
+      qb.andWhere({ examDate: { $lte: endDate } });
     }
 
     // Lọc theo exam session
     if (filter.examSessionId) {
-      qb.andWhere('eg.examSession = ?', [filter.examSessionId]);
+      qb.andWhere({ examGroup: { examSession: filter.examSessionId } });
     }
 
-    qb.orderBy({ 'e.examDate': 'ASC', 's.startTime': 'ASC' });
+    qb.orderBy({ examDate: 'ASC', examSlot: { startTime: 'ASC' } });
 
     const exams = await qb.getResult();
 
