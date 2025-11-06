@@ -31,6 +31,7 @@ export interface GaExamGroup {
 export interface GaTimeSlot {
   id: number;
   date: Date; // Ngày thi cụ thể
+  examSlotId: number; // <-- THÊM MỚI: ID của ExamSlot từ DB
   start: number; // số phút từ 00:00
   end: number; // số phút từ 00:00
 }

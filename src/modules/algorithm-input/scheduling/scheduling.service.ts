@@ -52,6 +52,8 @@ export class SchedulingService {
     private readonly examRegistrationRepository: EntityRepository<ExamRegistration>,
     @InjectRepository(ExamSupervisor)
     private readonly examSupervisorRepository: EntityRepository<ExamSupervisor>,
+    @InjectRepository(ExamSlot)
+    private readonly examSlotRepository: EntityRepository<ExamSlot>,
   ) {}
 
   public async generateAdvanced(dto: ScheduleRequestDto) {
@@ -144,7 +146,10 @@ export class SchedulingService {
    */
   private async initializeProblem(dto: ScheduleRequestDto): Promise<void> {
     this.studentsByExamGroup = new Map();
-
+    const examSlotEntities = await this.examSlotRepository.findAll();
+    if (examSlotEntities.length === 0) {
+      throw new Error('Không có ca thi (ExamSlot) nào trong CSDL.');
+    }
     // Tải dữ liệu thô
     const roomEntities = await this.roomRepository.find({
       id: { $in: dto.roomIds },
@@ -200,6 +205,7 @@ export class SchedulingService {
       dto.startDate,
       dto.endDate,
       dto.holidays,
+      examSlotEntities,
     );
 
     // Đóng gói dữ liệu đầu vào
@@ -217,6 +223,7 @@ export class SchedulingService {
     startDate: string,
     endDate: string,
     holidays: string[],
+    examSlots: ExamSlot[],
   ): GaTimeSlot[] {
     const slots: GaTimeSlot[] = [];
     let id = 0;
@@ -229,12 +236,19 @@ export class SchedulingService {
       const dateString = formatDateToYYYYMMDD(d);
       if (holidaySet.has(dateString)) continue; // Bỏ ngày lễ
 
-      for (const startHour of DAILY_START_HOURS) {
+      for (const examSlot of examSlots) {
+        // Chuyển "08:00" -> 480
+        const [startHour, startMin] = examSlot.startTime.split(':').map(Number);
+        const [endHour, endMin] = examSlot.endTime.split(':').map(Number);
+        const startMinute = startHour * 60 + startMin;
+        const endMinute = endHour * 60 + endMin;
+
         slots.push({
-          id: id++,
+          id: id++, // ID của kíp (0, 1, 2...)
           date: new Date(d),
-          start: startHour * 60,
-          end: 0, // Sẽ được tính khi format
+          examSlotId: examSlot.id, // <-- ID của ca (từ DB)
+          start: startMinute,
+          end: endMinute,
         });
       }
     }
@@ -272,15 +286,14 @@ export class SchedulingService {
         exam.examDate = timeSlot.date;
         exam.duration = examGroup.duration;
         exam.status = 'Draft';
-        // FIXME: Cần logic map timeSlot.start (480) sang ExamSlot ID (1)
-        exam.examSlot = em.getReference(ExamSlot, 1); // ĐANG GÁN CỨNG
+        exam.examSlot = em.getReference(ExamSlot, timeSlot.examSlotId);
         await em.persist(exam);
 
         // Tạo Supervisor
         const supervisor = new ExamSupervisor();
         supervisor.exam = exam;
         supervisor.lecturer = em.getReference(Lecturer, gene.proctorId);
-        supervisor.role = 'Supervisor';
+        supervisor.role = 'Supervisor'; // cần xóa
         await em.persist(supervisor);
 
         // Tạo Registrations

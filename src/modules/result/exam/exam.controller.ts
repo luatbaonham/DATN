@@ -15,6 +15,9 @@ import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { ExamResponseDto } from './dto/exam-response.dto';
 import { ExamFilterDto } from './dto/exam-filter.dto';
+import { ExamTimetableFilterDto } from './dto/exam-timetable-filter.dto';
+import { ExamTimetableResponseDto } from './dto/exam-timetable-response.dto';
+import { ExamDetailDto } from './dto/exam-detail.dto';
 import { plainToInstance } from 'class-transformer';
 import {
   ApiBearerAuth,
@@ -89,5 +92,30 @@ export class ExamController {
   ): Promise<{ success: boolean }> {
     const result = await this.examService.remove(id);
     return { success: result };
+  }
+
+  @Get('timetable/view')
+  @ApiOperation({
+    summary: 'Lấy lịch thi theo khoảng thời gian (định dạng timetable)',
+  })
+  @ApiQuery({ name: 'startDate', required: false, type: String })
+  @ApiQuery({ name: 'endDate', required: false, type: String })
+  @ApiQuery({ name: 'examSessionId', required: false, type: Number })
+  @ApiResponse({ status: 200, type: ExamTimetableResponseDto })
+  async getExamTimetable(
+    @Query() filter: ExamTimetableFilterDto,
+  ): Promise<ExamTimetableResponseDto> {
+    return this.examService.getExamTimetable(filter);
+  }
+
+  @Get(':id/detail')
+  @ApiOperation({
+    summary: 'Lấy chi tiết kỳ thi bao gồm danh sách sinh viên và giám thị',
+  })
+  @ApiResponse({ status: 200, type: ExamDetailDto })
+  async getExamDetail(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ExamDetailDto> {
+    return this.examService.getExamDetail(id);
   }
 }
