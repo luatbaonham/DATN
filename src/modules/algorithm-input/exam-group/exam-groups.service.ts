@@ -26,6 +26,7 @@ export class ExamGroupsService {
       status: dto.status ?? 'not scheduled',
       course,
       examSession,
+      is_active: true,
     });
     await this.em.persistAndFlush(examGroup);
     return examGroup;

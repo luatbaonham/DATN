@@ -25,6 +25,9 @@ export class Course {
   @Property({ type: 'int', default: 3 })
   credits!: number; //số tín chỉ
 
+  @Property({ type: 'int', default: 90 })
+  duration_course_exam!: number;
+
   @Property({ type: 'int', default: 0 })
   expected_students!: number; // Số SV dự kiến đăng ký
 

@@ -15,6 +15,22 @@ export class DepartmentSeeder extends Seeder {
         departmentName: 'Công nghệ thông tin',
         location,
       },
+      { departmentCode: 'KT', departmentName: 'Kinh tế', location },
+      { departmentCode: 'SP', departmentName: 'Sư phạm', location },
+      { departmentCode: 'NN', departmentName: 'Ngoại ngữ', location },
+      { departmentCode: 'LS', departmentName: 'Lịch sử', location },
+      { departmentCode: 'DL', departmentName: 'Du lịch', location },
+      {
+        departmentCode: 'TCNH',
+        departmentName: 'Tài chính - Ngân hàng',
+        location,
+      },
+      { departmentCode: 'KTMT', departmentName: 'Kỹ thuật máy tính', location },
+      {
+        departmentCode: 'QTKD',
+        departmentName: 'Quản trị kinh doanh',
+        location,
+      },
     ];
 
     for (const data of departments) {

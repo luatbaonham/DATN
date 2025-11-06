@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 
 export class CreateExamGroupDto {
-  @ApiProperty({ example: 'EG001', description: 'Mã nhóm thi (duy nhất)' })
+  @ApiProperty({ example: 'EG001', description: 'Mã nhóm thi' })
   @IsString()
   @IsNotEmpty()
   code!: string;
@@ -32,11 +32,19 @@ export class CreateExamGroupDto {
   exam_session_id!: number;
 
   @ApiProperty({
-    description: 'Trạng thái nhóm thi',
+    description: 'Trạng thái nhóm thi', //trạng thái này là nhóm thi đã đc công bố hay gì hay chưa
     example: 'not_scheduled',
     default: 'not_scheduled',
   })
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiProperty({
+    description: 'Trạng thái nhóm thi', // true: đang dùng, false: bị hủy (khi tạo lại)
+    example: true,
+    default: true,
+  })
+  @IsBoolean({ message: 'Trạng thái phải là true hoặc false' })
+  is_active!: boolean;
 }

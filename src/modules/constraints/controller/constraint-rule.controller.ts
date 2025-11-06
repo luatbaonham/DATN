@@ -12,7 +12,8 @@ import { ConstraintRuleService } from '../service/constraint-rule.service';
 import { ConstraintRule } from '../entities/constraint-rule.entity';
 import { CreateConstraintRuleDto } from '../dto/create-constraint-rule.dto';
 import { UpdateConstraintRuleDto } from '../dto/update-constraint-rule.dto';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { BatchConstraintRuleDto } from '../dto/batch-create-constraint-rule.dto';
 
 @ApiTags('constraint-rules')
 @Controller('constraint-rules')
@@ -57,5 +58,11 @@ export class ConstraintRuleController {
   @ApiResponse({ status: 200, description: 'Xóa ConstraintRule thành công' })
   async remove(@Param('id', ParseIntPipe) id: number) {
     return this.ruleService.remove(id);
+  }
+
+  @Post('batch')
+  @ApiOperation({ summary: 'Lưu hàng loạt constraint rule cho 1 đợt thi' })
+  async batchSave(@Body() dto: BatchConstraintRuleDto) {
+    return this.ruleService.batchSave(dto);
   }
 }

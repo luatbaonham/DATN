@@ -620,16 +620,6 @@
       "indexes": [
         {
           "columnNames": [
-            "code"
-          ],
-          "composite": false,
-          "keyName": "exam_groups_code_unique",
-          "constraint": true,
-          "primary": false,
-          "unique": true
-        },
-        {
-          "columnNames": [
             "course_id"
           ],
           "composite": false,

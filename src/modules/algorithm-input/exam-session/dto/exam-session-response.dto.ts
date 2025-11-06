@@ -13,14 +13,14 @@ export class ExamSessionResponseDto {
 
   @ApiProperty({ description: 'Ngày bắt đầu', example: '2025-06-01T08:00:00Z' })
   @Expose()
-  start_date!: Date;
+  start_date?: Date;
 
   @ApiProperty({
     description: 'Ngày kết thúc',
     example: '2025-06-15T17:00:00Z',
   })
   @Expose()
-  end_date!: Date;
+  end_date?: Date;
 
   @ApiProperty({
     description: 'Trạng thái đợt thi (đang mở hay không)',

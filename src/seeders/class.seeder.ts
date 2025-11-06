@@ -5,18 +5,46 @@ import { Department } from '@modules/core-data/departments/entities/department.e
 
 export class ClassSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
-    const department = await em.findOne(Department, { departmentCode: 'CNTT' });
-    if (!department) return;
+    const departmentCodes = ['CNTT', 'KHTN', 'KT', 'SP', 'NN'];
 
-    const classes = [
-      { classCode: 'CNTT01', className: 'Công nghệ thông tin 01', department },
-      { classCode: 'CNTT02', className: 'Công nghệ thông tin 02', department },
-    ];
+    const classDefinitions = {
+      CNTT: [
+        { classCode: 'CNTT01', className: 'Công nghệ thông tin 01' },
+        { classCode: 'CNTT02', className: 'Công nghệ thông tin 02' },
+        { classCode: 'CNTT03', className: 'Công nghệ thông tin 03' },
+      ],
+      KHTN: [
+        { classCode: 'KHTN01', className: 'Khoa học tự nhiên 01' },
+        { classCode: 'KHTN02', className: 'Khoa học tự nhiên 02' },
+        { classCode: 'KHTN03', className: 'Khoa học tự nhiên 03' },
+      ],
+      KT: [
+        { classCode: 'KT01', className: 'Kinh tế 01' },
+        { classCode: 'KT02', className: 'Kinh tế 02' },
+        { classCode: 'KT03', className: 'Kinh tế 03' },
+      ],
+      SP: [
+        { classCode: 'SP01', className: 'Sư phạm 01' },
+        { classCode: 'SP02', className: 'Sư phạm 02' },
+        { classCode: 'SP03', className: 'Sư phạm 03' },
+      ],
+      NN: [
+        { classCode: 'NN01', className: 'Ngoại ngữ 01' },
+        { classCode: 'NN02', className: 'Ngoại ngữ 02' },
+        { classCode: 'NN03', className: 'Ngoại ngữ 03' },
+      ],
+    };
 
-    for (const data of classes) {
-      const exist = await em.findOne(Classes, { classCode: data.classCode });
-      if (!exist) {
-        em.create(Classes, data);
+    for (const code of departmentCodes) {
+      const department = await em.findOne(Department, { departmentCode: code });
+      if (!department) continue;
+
+      const classes = classDefinitions[code];
+      for (const data of classes) {
+        const exist = await em.findOne(Classes, { classCode: data.classCode });
+        if (!exist) {
+          em.create(Classes, { ...data, department });
+        }
       }
     }
 

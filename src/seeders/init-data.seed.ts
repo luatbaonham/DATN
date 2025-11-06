@@ -30,46 +30,38 @@ import { DepartmentSeeder } from './department.seeder';
 import { ClassSeeder } from './class.seeder';
 import { RoomSeeder } from './room.seed';
 import { UserAdminSeeder } from './user-admin.seeder';
+import { CourseSeeder } from './course.seeder';
 
 export class InitSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
     console.log('🌱 Bắt đầu seed dữ liệu mẫu...');
 
-    await this.call(em, [UserAdminSeeder]);
     // 1️⃣ Role & Permission
     await this.call(em, [PermissionSeeder]);
     console.log('✅ Đã seed Role & Permission');
 
+    await this.call(em, [UserAdminSeeder]);
+
     // 2️⃣ Location
     await this.call(em, [LocationSeeder]);
     const location = await em.findOneOrFail(Locations, { code: 'CS001' });
-    console.log('✅ Đã seed Location:', location.name);
+    console.log('✅ Đã seed Location:');
 
     // 3️⃣ Department
     await this.call(em, [DepartmentSeeder]);
-    const department = await em.findOneOrFail(Department, {
-      departmentCode: 'CNTT',
-    });
-    console.log('✅ Đã seed Department:', department.departmentName);
+    console.log('✅ Đã seed Department:');
 
     // 4️⃣ Class
     await this.call(em, [ClassSeeder]);
-    const classEntity = await em.findOneOrFail(Classes, {
-      classCode: 'CNTT01',
-    });
-    console.log('✅ Đã seed Class:', classEntity.className);
+    console.log('✅ Đã seed Class:');
 
-    // 5️⃣ Lecturer
-    await this.call(em, [LecturerSeeder]);
-    const lecturer = await em.findOneOrFail(Lecturer, {
-      lecturerCode: 'GV001',
-    });
-    console.log('✅ Đã seed Lecturer:');
+    // // 5️⃣ Lecturer
+    // await this.call(em, [LecturerSeeder]);
+    // console.log('✅ Đã seed Lecturer:');
 
-    // 6️⃣ Student
-    await this.call(em, [StudentSeeder]);
-    const student = await em.findOneOrFail(Student, { studentCode: 'SV001' });
-    console.log('✅ Đã seed Student:');
+    // // 6️⃣ Student
+    // await this.call(em, [StudentSeeder]);
+    // console.log('✅ Đã seed Student:');
 
     // 7️⃣ Room
     await this.call(em, [RoomSeeder]);
@@ -77,16 +69,8 @@ export class InitSeeder extends Seeder {
     console.log('✅ Đã seed Room:');
 
     // 8️⃣ Course
-    const course = em.create(Course, {
-      codeCourse: 'CT101',
-      nameCourse: 'Nhập môn Công nghệ Thông tin',
-      description: 'Giới thiệu các khái niệm cơ bản về CNTT',
-      credits: 3,
-      expected_students: 100,
-      is_active: true,
-    });
-    await em.persistAndFlush(course);
-    console.log('✅ Đã seed Course:', course.nameCourse);
+    await this.call(em, [CourseSeeder]);
+    console.log('✅ Đã seed Course:');
 
     // 9️⃣ Exam Session
     const examSession = em.create(ExamSession, {
@@ -100,74 +84,75 @@ export class InitSeeder extends Seeder {
     await em.persistAndFlush(examSession);
     console.log('✅ Đã seed ExamSession:', examSession.name);
 
-    // 🔟 StudentCourseRegistration
-    const scr = em.create(StudentCourseRegistration, {
-      student,
-      course,
-      examSession,
-      is_active: true,
-    });
-    await em.persistAndFlush(scr);
-    console.log('✅ Đã seed StudentCourseRegistration');
+    // // 🔟 StudentCourseRegistration
+    // const scr = em.create(StudentCourseRegistration, {
+    //   student,
+    //   course,
+    //   examSession,
+    //   is_active: true,
+    // });
+    // await em.persistAndFlush(scr);
+    // console.log('✅ Đã seed StudentCourseRegistration');
 
     // 11️⃣ Exam Group
-    const examGroup = em.create(ExamGroup, {
-      code: 'EG001',
-      expected_student_count: 50,
-      status: 'not_scheduled',
-      course,
-      examSession,
-    });
-    await em.persistAndFlush(examGroup);
-    console.log('✅ Đã seed ExamGroup:', examGroup.code);
+    // const examGroup = em.create(ExamGroup, {
+    //   code: 'EG001',
+    //   expected_student_count: 50,
+    //   status: 'not_scheduled',
+    //   course,
+    //   examSession,
+    //   is_active: true,
+    // });
+    // await em.persistAndFlush(examGroup);
+    // console.log('✅ Đã seed ExamGroup:', examGroup.code);
 
-    // 12️⃣ StudentExamGroup
-    const seg = em.create(StudentExamGroup, {
-      student,
-      examGroup,
-      is_active: true,
-    });
-    await em.persistAndFlush(seg);
-    console.log('✅ Đã seed StudentExamGroup');
+    // // 12️⃣ StudentExamGroup
+    // const seg = em.create(StudentExamGroup, {
+    //   student,
+    //   examGroup,
+    //   is_active: true,
+    // });
+    // await em.persistAndFlush(seg);
+    // console.log('✅ Đã seed StudentExamGroup');
 
-    // 13️⃣ Exam Slot
-    const slot = em.create(ExamSlot, {
-      slotName: 'Ca 1',
-      startTime: '08:00',
-      endTime: '10:00',
-      description: 'Ca thi buổi sáng',
-    });
-    await em.persistAndFlush(slot);
-    console.log('✅ Đã seed ExamSlot:', slot.slotName);
+    // // 13️⃣ Exam Slot
+    // const slot = em.create(ExamSlot, {
+    //   slotName: 'Ca 1',
+    //   startTime: '08:00',
+    //   endTime: '10:00',
+    //   description: 'Ca thi buổi sáng',
+    // });
+    // await em.persistAndFlush(slot);
+    // console.log('✅ Đã seed ExamSlot:', slot.slotName);
 
-    // 14️⃣ Exam
-    const exam = em.create(Exam, {
-      examGroup,
-      room,
-      examSlot: slot,
-      examDate: new Date('2025-12-15'),
-      duration: 120,
-      status: 'DỰ_THẢO',
-    });
-    await em.persistAndFlush(exam);
-    console.log('✅ Đã seed Exam:', exam.id);
+    // // 14️⃣ Exam
+    // const exam = em.create(Exam, {
+    //   examGroup,
+    //   room,
+    //   examSlot: slot,
+    //   examDate: new Date('2025-12-15'),
+    //   duration: 120,
+    //   status: 'DỰ_THẢO',
+    // });
+    // await em.persistAndFlush(exam);
+    // console.log('✅ Đã seed Exam:', exam.id);
 
-    // 15️⃣ ExamRegistration
-    const examReg = em.create(ExamRegistration, {
-      exam,
-      student,
-    });
-    await em.persistAndFlush(examReg);
-    console.log('✅ Đã seed ExamRegistration');
+    // // 15️⃣ ExamRegistration
+    // const examReg = em.create(ExamRegistration, {
+    //   exam,
+    //   student,
+    // });
+    // await em.persistAndFlush(examReg);
+    // console.log('✅ Đã seed ExamRegistration');
 
-    // 16️⃣ ExamSupervisor
-    const examSup = em.create(ExamSupervisor, {
-      exam,
-      lecturer,
-      role: 'CHINH',
-    });
-    await em.persistAndFlush(examSup);
-    console.log('✅ Đã seed ExamSupervisor');
+    // // 16️⃣ ExamSupervisor
+    // const examSup = em.create(ExamSupervisor, {
+    //   exam,
+    //   lecturer,
+    //   role: 'CHINH',
+    // });
+    // await em.persistAndFlush(examSup);
+    // console.log('✅ Đã seed ExamSupervisor');
 
     console.log('🎉 Seed dữ liệu hoàn tất!');
   }

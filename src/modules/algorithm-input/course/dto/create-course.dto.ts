@@ -43,6 +43,13 @@ export class CreateCourseDto {
   credits!: number;
 
   @ApiProperty({
+    description: 'Thời lượng thi môn này(phút)',
+    example: 90,
+  })
+  @IsInt({ message: 'Thời lượng thi phải là số nguyên' })
+  duration_course_exam!: number;
+
+  @ApiProperty({
     description: 'Số sinh viên dự kiến đăng ký',
     example: 50,
     default: 0,

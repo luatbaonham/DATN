@@ -17,7 +17,7 @@ export class LecturerSeeder extends Seeder {
 
     const lecturers = [
       {
-        lecturerCode: 'GV001',
+        lecturerCode: 'GV999',
         firstName: 'Nguyễn',
         lastName: 'Thành',
         dateOfBirth: new Date('1980-04-15'),
@@ -27,7 +27,7 @@ export class LecturerSeeder extends Seeder {
         isSupervisor: false,
       },
       {
-        lecturerCode: 'GV002',
+        lecturerCode: 'GV1000',
         firstName: 'Lê',
         lastName: 'Mai',
         dateOfBirth: new Date('1985-09-20'),

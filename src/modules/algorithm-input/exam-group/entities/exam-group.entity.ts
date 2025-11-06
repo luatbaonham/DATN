@@ -16,7 +16,7 @@ export class ExamGroup {
   @PrimaryKey()
   id!: number;
 
-  @Property({ unique: true })
+  @Property()
   code!: string; // mã_nhóm_thi
 
   @Property({ default: 0 })
@@ -24,6 +24,9 @@ export class ExamGroup {
 
   @Property({ default: 'not_scheduled' })
   status!: string; // not_scheduled / scheduled
+
+  @Property({ default: true })
+  is_active!: boolean; // true: đang dùng, false: bị hủy (khi tạo lại)
 
   @ManyToOne(() => Course)
   course!: Course;

@@ -6,7 +6,6 @@ import config from 'mikro-orm.config';
 import { UsersModule } from '@modules/identity/users/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from '@modules/identity/auth/auth.module';
-import { ScheduleModule } from '@nestjs/schedule';
 import { RolesPermissionsModule } from '@modules/identity/roles-permissions/roles-per.module';
 import { DepartmentModule } from '@modules/core-data/departments/department.module';
 import { StudentModule } from '@modules/core-data/students/student.module';
@@ -19,17 +18,19 @@ import { StudentCourseRegistrationsModule } from '@modules/algorithm-input/stude
 import { StudentExamGroupsModule } from '@modules/algorithm-input/student-exam-group/student-exam-groups.module';
 import { ExamGroupsModule } from '@modules/algorithm-input/exam-group/exam-groups.module';
 import { LocationsModule } from '@modules/algorithm-input/location/locations.module';
-import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling.module';
+import { GenerateInputModule } from '@modules/ga-core/generate-input/generate-input.module';
 import { ConstraintModule } from '@modules/constraints/constraint.module';
 import { ExamModule } from '@modules/result/exam/exam.module';
 import { ExamRegistrationModule } from '@modules/result/exam-registration/exam-registration.module';
 import { ExamSlotModule } from '@modules/result/exam-slot/exam-slot.module';
 import { ExamSupervisorModule } from '@modules/result/exam-supervisor/exam-supervisor.module';
-import { ExamGroupingModule } from '@modules/algorithm-input/exam-group-create/exam-grouping.module';
+import { ExamGroupingModule } from '@modules/ga-core/exam-grouping/exam-grouping.module';
+import { SchedulingRunnerModule } from '@modules/ga-core/scheduling/scheduling-runner.module';
+import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling.module';
+
 @Module({
   imports: [
     MikroOrmModule.forRoot(config),
-    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -51,14 +52,16 @@ import { ExamGroupingModule } from '@modules/algorithm-input/exam-group-create/e
     StudentCourseRegistrationsModule,
     StudentExamGroupsModule,
     //
-    SchedulingModule,
+    ExamGroupingModule, // tự động tạo các nhóm thi
     ConstraintModule,
+    GenerateInputModule, // generate dữ liệu đầu vào cho thuật toán
+    SchedulingRunnerModule,
+    SchedulingModule, // này để test tạo lịch thi tự động nhanh
     //
     ExamModule,
     ExamSlotModule,
     ExamRegistrationModule,
     ExamSupervisorModule,
-    ExamGroupingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

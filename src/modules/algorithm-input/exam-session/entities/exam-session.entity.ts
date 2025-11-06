@@ -19,10 +19,10 @@ export class ExamSession {
   name!: string; // Tên đợt thi, ví dụ "Học kỳ 1 - 2025"
 
   @Property()
-  start_date!: Date;
+  start_date?: Date; //nếu null => chưa xếp lịch, nếu có => đã xếp
 
   @Property()
-  end_date!: Date;
+  end_date?: Date;
 
   @Property({ default: true })
   is_active!: boolean; // Kiểm soát đợt thi đang mở

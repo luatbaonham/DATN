@@ -29,6 +29,12 @@ export class CourseResponseDto {
   credits!: number;
 
   @ApiProperty({
+    description: 'Thời lượng thi môn này(phút)',
+    example: 90,
+  })
+  duration_course_exam!: number;
+
+  @ApiProperty({
     description: 'Số sinh viên dự kiến đăng ký',
     example: 50,
     default: 0,

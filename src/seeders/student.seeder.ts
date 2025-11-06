@@ -17,7 +17,7 @@ export class StudentSeeder extends Seeder {
 
     const students = [
       {
-        studentCode: 'SV001',
+        studentCode: 'SV999',
         firstName: 'Lê',
         lastName: 'Minh',
         dateOfBirth: new Date('2003-05-10'),
@@ -26,7 +26,7 @@ export class StudentSeeder extends Seeder {
         phoneNumber: '0901234567',
       },
       {
-        studentCode: 'SV002',
+        studentCode: 'SV1000',
         firstName: 'Phạm',
         lastName: 'Thảo',
         dateOfBirth: new Date('2003-08-22'),
