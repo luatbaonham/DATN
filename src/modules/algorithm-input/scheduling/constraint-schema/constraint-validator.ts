@@ -5,9 +5,9 @@ const ajv = new Ajv({ allErrors: true });
 
 export class ConstraintValidator {
   static validateRule(constraintCode: string, rule: any) {
-    const schema = ConstraintSchemas[constraintCode];
+    const schema =
+      ConstraintSchemas[constraintCode as keyof typeof ConstraintSchemas];
 
-    // Nếu chưa có schema — cho qua, chỉ cảnh báo
     if (!schema) {
       return {
         valid: true,
@@ -30,9 +30,6 @@ export class ConstraintValidator {
     return { valid: true, normalized };
   }
 
-  /**
-   * Convert lỗi từ AJV thành định dạng chuẩn (field + message)
-   */
   private static formatErrors(errors?: ErrorObject[] | null) {
     if (!errors) return [];
     return errors.map((e) => ({
@@ -41,9 +38,6 @@ export class ConstraintValidator {
     }));
   }
 
-  /**
-   * Chuẩn hóa dữ liệu rule cho thuật toán đọc dễ hơn
-   */
   private static normalize(
     constraintCode: string,
     rule: any,
@@ -52,17 +46,11 @@ export class ConstraintValidator {
       case 'HOLIDAY':
         return { holidays: rule.holiday };
       case 'MAX_EXAMS_PER_DAY':
-        return { maxExamsPerStudentPerDay: rule.max };
+        return { maxExamsPerStudentPerDay: rule.max_exam_per_day };
       case 'AVOID_WEEKEND':
-        return { avoidWeekend: rule.active };
-      case 'ROOM_CAPACITY':
-        return { enforceRoomCapacity: rule.enforce };
-      case 'GAP_BETWEEN_EXAMS':
-        return { minGapBetweenExamsMinutes: rule.minGapMinutes };
-      case 'LECTURER_MAX_SUPERVISIONS':
-        return { maxLecturerSupervisionsPerDay: rule.max };
-      case 'FIXED_TIME_CONSTRAINT':
-        return { fixedExams: rule.fixedExams };
+        return { avoidWeekend: rule.avoid_weekend };
+      case 'ROOM_LOCATION_LIMIT':
+        return { maxLocationPerRoom: rule.max_location };
       default:
         return rule;
     }

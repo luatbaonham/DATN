@@ -25,9 +25,6 @@ export class ExamGroup {
   @Property({ default: 'not_scheduled' })
   status!: string; // not_scheduled / scheduled
 
-  @Property({ default: true })
-  is_active!: boolean; // true: đang dùng, false: bị hủy (khi tạo lại)
-
   @ManyToOne(() => Course)
   course!: Course;
 

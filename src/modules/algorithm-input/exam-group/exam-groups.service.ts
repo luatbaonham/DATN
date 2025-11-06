@@ -26,7 +26,6 @@ export class ExamGroupsService {
       status: dto.status ?? 'not scheduled',
       course,
       examSession,
-      is_active: true,
     });
     await this.em.persistAndFlush(examGroup);
     return examGroup;
@@ -75,5 +74,65 @@ export class ExamGroupsService {
     const examGroup = await this.findOne(id);
     await this.em.removeAndFlush(examGroup);
     return true;
+  }
+
+  /**
+   * Xóa tất cả exam groups nếu chưa có exam nào được tạo
+   * @param examSessionId - ID của đợt thi (optional)
+   * @returns Số lượng exam groups đã xóa
+   */
+  async removeAllIfNoExams(
+    examSessionId?: number,
+  ): Promise<{ success: boolean; deleted: number; message: string }> {
+    // Build query điều kiện
+    const whereCondition: any = {};
+    if (examSessionId) {
+      whereCondition.examSession = examSessionId;
+    }
+
+    // Lấy tất cả exam groups (có thể filter theo examSession)
+    const examGroups = await this.em.find(ExamGroup, whereCondition, {
+      populate: ['exam', 'studentExamGroups'],
+    });
+
+    if (examGroups.length === 0) {
+      return {
+        success: false,
+        deleted: 0,
+        message: 'Không có exam group nào để xóa',
+      };
+    }
+
+    // Kiểm tra xem có exam nào đã được tạo chưa
+    const hasAnyExam = examGroups.some((eg) => eg.exam.length > 0);
+    if (hasAnyExam) {
+      return {
+        success: false,
+        deleted: 0,
+        message:
+          'Không thể xóa vì đã có lịch thi (exam) được tạo. Vui lòng xóa lịch thi trước.',
+      };
+    }
+
+    // Xóa tất cả student_exam_groups liên quan trước
+    let deletedCount = 0;
+    for (const examGroup of examGroups) {
+      // Xóa các student_exam_groups
+      await this.em.nativeDelete('StudentExamGroup', {
+        examGroup: examGroup.id,
+      });
+
+      // Xóa exam group
+      this.em.remove(examGroup);
+      deletedCount++;
+    }
+
+    await this.em.flush();
+
+    return {
+      success: true,
+      deleted: deletedCount,
+      message: `Đã xóa thành công ${deletedCount} exam groups${examSessionId ? ' của đợt thi này' : ''}`,
+    };
   }
 }

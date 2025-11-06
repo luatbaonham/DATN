@@ -90,26 +90,47 @@ export class StudentDto {
   examGroups!: string[];
 }
 
-export class ConstraintsDto {
+export class AdvancedConstraintsDto {
   @ApiProperty({
-    description: 'Số ca thi tối đa mỗi ngày cho 1 sinh viên',
+    description:
+      'Danh sách ngày nghỉ lễ, các môn thi không được xếp vào những ngày này',
+    example: ['2025-01-01', '2025-12-25'],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsDateString({}, { each: true })
+  holiday?: string[];
+
+  @ApiProperty({
+    description: 'Tránh xếp thi vào cuối tuần (thứ 7, Chủ nhật)',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  avoid_weekend?: boolean;
+
+  @ApiProperty({
+    description: 'Số môn thi tối đa 1 sinh viên có thể thi trong cùng 1 ngày',
     example: 2,
     required: false,
   })
   @IsOptional()
   @IsInt()
   @Min(1)
-  maxExamsPerStudentPerDay?: number;
+  max_exam_per_day?: number;
 
   @ApiProperty({
     description:
-      'Tránh việc sinh viên phải di chuyển giữa các địa điểm trong 1 ngày',
-    example: true,
+      'Giới hạn số cơ sở tối đa mà sinh viên có thể thi trong cùng một ngày',
+    example: 1,
     required: false,
   })
   @IsOptional()
-  @IsBoolean()
-  avoidInterLocationTravel?: boolean;
+  @IsInt()
+  @Min(1)
+  max_location?: number;
 }
 
 // ----------------------------------------------------------------
@@ -165,6 +186,6 @@ export class AdvancedScheduleDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @ValidateNested()
-  @Type(() => ConstraintsDto)
-  constraints?: ConstraintsDto;
+  @Type(() => AdvancedConstraintsDto)
+  constraints?: AdvancedConstraintsDto;
 }

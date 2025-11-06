@@ -13,9 +13,6 @@ export class ExamSupervisor {
   @ManyToOne(() => Lecturer)
   lecturer!: Lecturer;
 
-  @Property()
-  role!: string; // Chính / Phụ
-
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;
 }

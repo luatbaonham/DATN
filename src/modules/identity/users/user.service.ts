@@ -170,7 +170,6 @@ export class UserService {
         ...baseProfile,
         lecturerCode: user.lecturer.lecturerCode,
         department: user.lecturer.department?.departmentName,
-        isSupervisor: user.lecturer.isSupervisor,
       };
     }
 

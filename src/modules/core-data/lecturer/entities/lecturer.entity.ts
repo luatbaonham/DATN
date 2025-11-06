@@ -49,9 +49,6 @@ export class Lecturer {
   @ManyToOne(() => Department, { nullable: true })
   department!: Department;
 
-  @Property({ default: false })
-  isSupervisor!: boolean;
-
   @OneToMany(() => ExamSupervisor, (examSup) => examSup.lecturer)
   examSupervisor = new Collection<ExamSupervisor>(this);
 

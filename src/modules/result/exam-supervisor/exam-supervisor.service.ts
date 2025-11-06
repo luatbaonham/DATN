@@ -22,7 +22,6 @@ export class ExamSupervisorService {
     const supervisor = this.em.create(ExamSupervisor, {
       exam,
       lecturer,
-      role: dto.role,
     });
     await this.em.persistAndFlush(supervisor);
     return supervisor;

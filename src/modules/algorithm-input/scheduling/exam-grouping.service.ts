@@ -36,18 +36,6 @@ export class ExamGroupingService {
 
     const maxCapacity = Math.max(...rooms.map((r) => r.capacity));
 
-    // --- 3️⃣ Hủy kích hoạt nhóm cũ (nếu có) ---
-    await this.em.nativeUpdate(
-      ExamGroup,
-      { examSession, is_active: true },
-      { is_active: false },
-    );
-    await this.em.nativeUpdate(
-      StudentExamGroup,
-      { is_active: true },
-      { is_active: false },
-    );
-
     // --- 4️⃣ Gom sinh viên theo môn học ---
     const groupedByCourse = new Map<
       number,
@@ -75,7 +63,7 @@ export class ExamGroupingService {
 
       while (index < students.length) {
         const groupStudents = students.slice(index, index + maxCapacity);
-        const groupCode = `G${groupCounter.toString().padStart(3, '0')}`;
+        const groupCode = `G${groupCounter.toString().padStart(3, '0')}`; // G001, EX 1: 3 nhóm thi: G001, G002 G003, EX2: G001,
 
         const examGroup = this.em.create(ExamGroup, {
           code: groupCode,
@@ -83,7 +71,6 @@ export class ExamGroupingService {
           examSession,
           expected_student_count: groupStudents.length,
           status: 'not_scheduled',
-          is_active: true,
         });
         newExamGroups.push(examGroup);
 
@@ -114,32 +101,28 @@ export class ExamGroupingService {
       throw err;
     }
 
-    // --- Debug logs ---
-    const totalStudents = registrations.length;
-    const totalGroups = newExamGroups.length;
-    const avgGroupSize =
-      totalStudents > 0 ? (totalStudents / totalGroups).toFixed(2) : 0;
+    // --- 7️⃣ Tạo dữ liệu GA ---
+    const studentsByExamGroup = new Map<number, number[]>();
+    for (const seg of newStudentExamGroups) {
+      const groupId = seg.examGroup.id;
+      const studentId = seg.student.id;
+      if (!studentsByExamGroup.has(groupId)) {
+        studentsByExamGroup.set(groupId, []);
+      }
+      studentsByExamGroup.get(groupId)!.push(studentId);
+    }
 
-    console.log(
-      '🏫 Rooms:',
-      rooms.map((r) => ({ id: r.id, capacity: r.capacity })),
-    );
-    console.log('📊 Max capacity:', maxCapacity);
-    console.log('👩‍🎓 Total students:', totalStudents);
-    console.log('👥 Total groups:', totalGroups);
-    console.log('📈 Average group size:', avgGroupSize);
-    console.log(
-      '🏢 Room capacities:',
-      rooms.map((r) => r.capacity),
-    );
+    const examGroups = newExamGroups.map((eg) => ({
+      examGroupId: eg.id,
+      courseId: eg.course.id,
+      duration: eg.course.duration_course_exam || 90,
+      studentCount: eg.expected_student_count,
+    }));
 
-    // --- 7️⃣ Trả kết quả ---
+    // --- 8️⃣ Trả về dữ liệu cho SchedulingService ---
     return {
-      message: '✅ Tạo nhóm thi thành công',
-      examSession: examSession.name,
-      totalGroups: newExamGroups.length,
-      totalStudents: newStudentExamGroups.length,
-      maxCapacity,
+      examGroups,
+      studentsByExamGroup,
     };
   }
 }

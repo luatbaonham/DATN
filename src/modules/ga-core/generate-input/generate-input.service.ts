@@ -12,7 +12,7 @@ import { Student } from '@modules/core-data/students/entities/student.entity';
 import { StudentExamGroup } from '@modules/algorithm-input/student-exam-group/entities/student-exam-group.entity';
 import { Lecturer } from '@modules/core-data/lecturer/entities/lecturer.entity';
 import { Constraint } from '@modules/constraints/entities/constraint.entity';
-import { ConstraintValidator } from '../constraint-schema/constraint-validator';
+import { ConstraintValidator } from '../../algorithm-input/scheduling/constraint-schema/constraint-validator';
 
 export interface ConstraintRuleInput {
   id: number;
@@ -47,7 +47,7 @@ export class GenerateInputService {
         ),
         this.em.find(Room, { location: examSession.location }),
         this.em.find(Student, {}),
-        this.em.find(Lecturer, { isSupervisor: false }),
+        this.em.find(Lecturer, {}),
         this.em.find(
           StudentExamGroup,
           {},

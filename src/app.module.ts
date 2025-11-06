@@ -24,7 +24,6 @@ import { ExamModule } from '@modules/result/exam/exam.module';
 import { ExamRegistrationModule } from '@modules/result/exam-registration/exam-registration.module';
 import { ExamSlotModule } from '@modules/result/exam-slot/exam-slot.module';
 import { ExamSupervisorModule } from '@modules/result/exam-supervisor/exam-supervisor.module';
-import { ExamGroupingModule } from '@modules/ga-core/exam-grouping/exam-grouping.module';
 import { SchedulingRunnerModule } from '@modules/ga-core/scheduling/scheduling-runner.module';
 import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling.module';
 
@@ -52,7 +51,6 @@ import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling
     StudentCourseRegistrationsModule,
     StudentExamGroupsModule,
     //
-    ExamGroupingModule, // tự động tạo các nhóm thi
     ConstraintModule,
     GenerateInputModule, // generate dữ liệu đầu vào cho thuật toán
     SchedulingRunnerModule,

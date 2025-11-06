@@ -85,7 +85,6 @@ export class LecturerService {
       phoneNumber: dto.phoneNumber,
       user,
       department,
-      isSupervisor: dto.isSupervisor ?? false,
     });
 
     await this.em.persistAndFlush(lecturer);
@@ -331,7 +330,6 @@ export class LecturerService {
             gender: dto.gender,
             address: dto.address,
             phoneNumber: dto.phoneNumber,
-            isSupervisor: dto.isSupervisor ?? false,
             user,
             department: departmentEntity,
           });
