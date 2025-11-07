@@ -217,7 +217,6 @@ export class SchedulingService {
     const timeSlots = this.createTimeSlots(
       dto.startDate,
       dto.endDate,
-      dto.holidays ?? [],
       examSlotEntities,
     );
 
@@ -235,19 +234,16 @@ export class SchedulingService {
   private createTimeSlots(
     startDate: string,
     endDate: string,
-    holidays: string[],
     examSlots: ExamSlot[],
   ): GaTimeSlot[] {
     const slots: GaTimeSlot[] = [];
     let id = 0;
-    const holidaySet = new Set(holidays);
     const start = new Date(startDate + 'T00:00:00');
     const end = new Date(endDate + 'T00:00:00');
 
     for (let d = start; d <= end; d.setDate(d.getDate() + 1)) {
       if (d.getDay() === 0) continue; // Bỏ Chủ Nhật
       const dateString = formatDateToYYYYMMDD(d);
-      if (holidaySet.has(dateString)) continue; // Bỏ ngày lễ
 
       for (const examSlot of examSlots) {
         // Chuyển "08:00" -> 480
