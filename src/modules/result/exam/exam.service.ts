@@ -62,7 +62,16 @@ export class ExamService {
   async findAll(
     filter: ExamFilterDto,
   ): Promise<PaginatedResponseDto<ExamResponseDto>> {
-    const { page = 1, limit = 10, status, examGroupName, roomName } = filter;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      examGroupName,
+      roomName,
+      startDate,
+      endDate,
+      examSessionId,
+    } = filter;
     const offset = (page - 1) * limit;
 
     const qb = this.em
@@ -78,7 +87,27 @@ export class ExamService {
       qb.andWhere('LOWER(eg.name) LIKE LOWER(?)', [`%${examGroupName}%`]);
     if (roomName) qb.andWhere('LOWER(r.name) LIKE LOWER(?)', [`%${roomName}%`]);
 
-    qb.orderBy({ createdAt: 'DESC' }).limit(limit).offset(offset);
+    // Lọc theo ngày bắt đầu
+    if (startDate) {
+      qb.andWhere({ examDate: { $gte: new Date(startDate) } });
+    }
+
+    // Lọc theo ngày kết thúc
+    if (endDate) {
+      const endDateTime = new Date(endDate);
+      // Set to end of day to include the entire end date
+      endDateTime.setHours(23, 59, 59, 999);
+      qb.andWhere({ examDate: { $lte: endDateTime } });
+    }
+
+    // Lọc theo exam session
+    if (examSessionId) {
+      qb.andWhere({ examGroup: { examSession: examSessionId } });
+    }
+
+    qb.orderBy({ examDate: 'ASC', examSlot: { startTime: 'ASC' } })
+      .limit(limit)
+      .offset(offset);
 
     const [data, total] = await qb.getResultAndCount();
     const items = plainToInstance(ExamResponseDto, data, {

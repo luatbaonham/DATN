@@ -78,7 +78,7 @@ export class SchedulingService {
 
       // 2. Chạy thuật toán
       // (GA service sẽ xử lý các hằng số GENERATIONS)
-      const bestSchedule = this.gaService.run(this.problem);
+      const bestSchedule = this.gaService.run(this.problem, loopGeneration);
       const endTime = Date.now();
       const executionTimeMs = endTime - startTime;
 

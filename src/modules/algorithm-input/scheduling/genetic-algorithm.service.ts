@@ -27,7 +27,10 @@ export class GeneticAlgorithmService {
   private proctorsById!: Map<number, GaProctor>;
   private timeSlotsById!: Map<number, GaTimeSlot>;
 
-  public run(problem: SchedulingProblem): Chromosome | null {
+  public run(
+    problem: SchedulingProblem,
+    loopGeneration: number,
+  ): Chromosome | null {
     this.problem = problem;
 
     if (this.problem.timeSlots.length === 0) {
@@ -51,6 +54,7 @@ export class GeneticAlgorithmService {
     let bestFitness = Infinity;
 
     for (let gen = 0; gen < POPULATION_SIZE; gen++) {
+      loopGeneration++;
       const populationWithFitness = population.map((chromosome) => ({
         chromosome,
         fitness: this.calculateFitness(chromosome),
