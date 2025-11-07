@@ -564,17 +564,6 @@
           "default": "'not_scheduled'",
           "mappedType": "string"
         },
-        "is_active": {
-          "name": "is_active",
-          "type": "tinyint(1)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 1,
-          "default": "true",
-          "mappedType": "boolean"
-        },
         "course_id": {
           "name": "course_id",
           "type": "int",
@@ -2514,17 +2503,6 @@
           "length": null,
           "mappedType": "integer"
         },
-        "is_supervisor": {
-          "name": "is_supervisor",
-          "type": "tinyint(1)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 1,
-          "default": "false",
-          "mappedType": "boolean"
-        },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
@@ -2653,16 +2631,6 @@
           "nullable": false,
           "length": null,
           "mappedType": "integer"
-        },
-        "role": {
-          "name": "role",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 255,
-          "mappedType": "string"
         },
         "created_at": {
           "name": "created_at",

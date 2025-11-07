@@ -48,10 +48,6 @@ export class SchedulingService {
     private readonly em: EntityManager,
     private readonly gaService: GeneticAlgorithmService, // <-- Inject service mới
     private readonly examGroupingService: ExamGroupingService,
-    @InjectRepository(Room)
-    private readonly roomRepository: EntityRepository<Room>,
-    @InjectRepository(Lecturer)
-    private readonly lecturerRepository: EntityRepository<Lecturer>,
     @InjectRepository(StudentExamGroup)
     private readonly studentExamGroupRepository: EntityRepository<StudentExamGroup>,
     @InjectRepository(Exam)
@@ -60,8 +56,6 @@ export class SchedulingService {
     private readonly examRegistrationRepository: EntityRepository<ExamRegistration>,
     @InjectRepository(ExamSupervisor)
     private readonly examSupervisorRepository: EntityRepository<ExamSupervisor>,
-    @InjectRepository(ExamSlot)
-    private readonly examSlotRepository: EntityRepository<ExamSlot>,
   ) {}
 
   public async generateAdvanced(dto: ScheduleRequestDto) {
@@ -199,7 +193,6 @@ export class SchedulingService {
       }
       this.studentsByExamGroup.get(examGroupId)!.push(studentId);
     }
-    // console.log('Students by Exam Group:', this.studentsByExamGroup);
     // Chuyển đổi thành các đối tượng Ga...
     const rooms: GaRoom[] = roomEntities.map((r) => ({
       roomId: r.id,

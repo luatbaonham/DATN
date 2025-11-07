@@ -61,12 +61,6 @@ export class ScheduleRequestDto {
   @IsNotEmpty()
   endDate!: string;
 
-  @ApiProperty({ example: ['2025-10-02'] })
-  @IsArray()
-  @IsDateString({}, { each: true })
-  @IsOptional()
-  holidays?: string[];
-
   @ApiProperty({ required: false, type: [ConstraintsRuleDto] })
   @ValidateNested({ each: true })
   @Type(() => ConstraintsRuleDto)

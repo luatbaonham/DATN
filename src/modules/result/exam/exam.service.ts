@@ -190,7 +190,6 @@ export class ExamService {
           return this.em.create(ExamSupervisor, {
             exam,
             lecturer,
-            role: assignment.role,
           });
         });
 
