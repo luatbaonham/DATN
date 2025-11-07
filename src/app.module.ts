@@ -24,7 +24,6 @@ import { ExamModule } from '@modules/result/exam/exam.module';
 import { ExamRegistrationModule } from '@modules/result/exam-registration/exam-registration.module';
 import { ExamSlotModule } from '@modules/result/exam-slot/exam-slot.module';
 import { ExamSupervisorModule } from '@modules/result/exam-supervisor/exam-supervisor.module';
-import { SchedulingRunnerModule } from '@modules/ga-core/scheduling/scheduling-runner.module';
 import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling.module';
 
 @Module({
@@ -53,7 +52,6 @@ import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling
     //
     ConstraintModule,
     GenerateInputModule, // generate dữ liệu đầu vào cho thuật toán
-    SchedulingRunnerModule,
     SchedulingModule, // này để test tạo lịch thi tự động nhanh
     //
     ExamModule,

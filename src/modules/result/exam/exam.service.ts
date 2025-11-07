@@ -365,7 +365,6 @@ export class ExamService {
       examDate: exam.examDate,
       duration: exam.duration,
       status: exam.status || 'Draft',
-      examGroupName: exam.examGroup.code || undefined,
       courseCode: exam.examGroup.course.codeCourse || undefined,
       courseName: exam.examGroup.course.nameCourse || undefined,
       roomName: exam.room.code || undefined,
