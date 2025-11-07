@@ -104,7 +104,6 @@ export class GenerateInputService {
       }
 
       groupedStudentExamGroups[studentId].examGroups.push({
-        code: seg.examGroup.code,
         name: seg.examGroup.course?.nameCourse ?? '',
       });
     }
@@ -122,7 +121,6 @@ export class GenerateInputService {
       },
       examGroups: examGroups.map((g) => ({
         id: g.id,
-        code: g.code,
         expectedStudentCount: g.expected_student_count ?? 0,
         duration_course_exam: g.course?.duration_course_exam ?? 90,
         courseId: g.course?.id,

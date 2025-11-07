@@ -16,9 +16,6 @@ export class ExamGroup {
   @PrimaryKey()
   id!: number;
 
-  @Property()
-  code!: string; // mã_nhóm_thi
-
   @Property({ default: 0 })
   expected_student_count!: number; // số SV dự kiến
 

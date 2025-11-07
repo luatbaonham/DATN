@@ -12,7 +12,7 @@ import { Course } from '@modules/algorithm-input/course/entities/course.entity';
 export class ExamGroupingService {
   constructor(private readonly em: EntityManager) {}
 
-  async generateExamGroups(examSessionId: number) {
+  async generateExamGroups(examSessionId: number, room: Room[]) {
     // --- 1️⃣ Kiểm tra đợt thi ---
     const examSession = await this.em.findOne(
       ExamSession,
@@ -22,19 +22,19 @@ export class ExamGroupingService {
     if (!examSession) throw new NotFoundException('Đợt thi không tồn tại');
 
     // --- 2️⃣ Lấy dữ liệu cần thiết ---
-    const rooms = await this.em.find(Room, { location: examSession.location });
+    // danh sách sinh viên đăng kí môn học
     const registrations = await this.em.find(
       StudentCourseRegistration,
       { examSession: examSessionId },
       { populate: ['student', 'course'] },
     );
 
-    if (!rooms.length)
+    if (!room.length)
       throw new NotFoundException('Không có phòng nào trong cơ sở của đợt thi');
     if (!registrations.length)
       throw new NotFoundException('Không có sinh viên đăng ký thi');
 
-    const maxCapacity = Math.max(...rooms.map((r) => r.capacity));
+    const maxCapacity = Math.max(...room.map((r) => r.capacity));
 
     // --- 4️⃣ Gom sinh viên theo môn học ---
     const groupedByCourse = new Map<
@@ -63,12 +63,12 @@ export class ExamGroupingService {
 
       while (index < students.length) {
         const groupStudents = students.slice(index, index + maxCapacity);
-        const groupCode = `G${groupCounter.toString().padStart(3, '0')}`; // G001, EX 1: 3 nhóm thi: G001, G002 G003, EX2: G001,
+        // G001, EX 1: 3 nhóm thi: G001, G002 G003, EX2: G001,
+        //xóa code trong exam group
 
         const examGroup = this.em.create(ExamGroup, {
-          code: groupCode,
           course,
-          examSession,
+          examSession, //lấy từ fe
           expected_student_count: groupStudents.length,
           status: 'not_scheduled',
         });
@@ -126,3 +126,4 @@ export class ExamGroupingService {
     };
   }
 }
+///

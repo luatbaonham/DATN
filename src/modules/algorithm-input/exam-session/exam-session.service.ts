@@ -107,7 +107,6 @@ export class ExamSessionService {
         // Tạo exam group
         const examGroupCode = `${course.codeCourse}-${examSession.name}-G${groupCounter}`;
         const examGroup = this.em.create(ExamGroup, {
-          code: examGroupCode,
           expected_student_count: groupSize,
           status: 'not_scheduled',
           course: course,

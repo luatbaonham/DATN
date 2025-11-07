@@ -136,30 +136,30 @@ export class SchedulingService {
         }
       }
     }
-    //  Kiểm tra constraint nếu có
-    if (dto.constraints && dto.constraints.length > 0) {
-      for (const c of dto.constraints) {
-        const constraint = await this.em.findOne(Constraint, {
-          id: c.constraintId,
-        });
-        if (!constraint) {
-          throw new NotFoundException(
-            `Constraint ID ${c.constraintId} không tồn tại`,
-          );
-        }
+    // //  Kiểm tra constraint nếu có
+    // if (dto.constraints && dto.constraints.length > 0) {
+    //   for (const c of dto.constraints) {
+    //     const constraint = await this.em.findOne(Constraint, {
+    //       id: c.constraintId,
+    //     });
+    //     if (!constraint) {
+    //       throw new NotFoundException(
+    //         `Constraint ID ${c.constraintId} không tồn tại`,
+    //       );
+    //     }
 
-        const validation = ConstraintValidator.validateRule(
-          constraint.constraintCode,
-          c.rule,
-        );
-        if (!validation.valid) {
-          throw new BadRequestException({
-            message: `Rule của constraint ${constraint.constraintCode} không hợp lệ`,
-            errors: validation.errors,
-          });
-        }
-      }
-    }
+    //     const validation = ConstraintValidator.validateRule(
+    //       constraint.constraintCode,
+    //       c.rule,
+    //     );
+    //     if (!validation.valid) {
+    //       throw new BadRequestException({
+    //         message: `Rule của constraint ${constraint.constraintCode} không hợp lệ`,
+    //         errors: validation.errors,
+    //       });
+    //     }
+    //   }
+    // }
 
     this.studentsByExamGroup = new Map();
     const examSlotEntities = await this.em.find(ExamSlot, {});
@@ -174,7 +174,10 @@ export class SchedulingService {
       id: { $in: dto.lecturerIds },
     });
     const { examGroups, studentsByExamGroup } =
-      await this.examGroupingService.generateExamGroups(dto.examSessionId);
+      await this.examGroupingService.generateExamGroups(
+        dto.examSessionId,
+        roomEntities,
+      );
 
     // Gán lại cho class-level map
     this.studentsByExamGroup = studentsByExamGroup;

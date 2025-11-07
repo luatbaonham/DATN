@@ -532,16 +532,6 @@
           "length": null,
           "mappedType": "integer"
         },
-        "code": {
-          "name": "code",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 255,
-          "mappedType": "string"
-        },
         "expected_student_count": {
           "name": "expected_student_count",
           "type": "int",
