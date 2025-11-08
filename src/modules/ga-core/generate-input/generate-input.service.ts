@@ -79,15 +79,15 @@ export class GenerateInputService {
         });
       }
 
-      constraintRules.push({
-        id: constraint.id,
-        code: constraint.constraintCode,
-        description: constraint.description,
-        type: constraint.type,
-        scope: constraint.scope,
-        isActive: r.isActive,
-        rule: validation.normalized,
-      });
+      // constraintRules.push({
+      //   id: constraint.id,
+      //   code: constraint.constraintCode,
+      //   description: constraint.description,
+      //   type: constraint.type,
+      //   scope: constraint.scope,
+      //   isActive: r.isActive,
+      //   rule: validation.normalized,
+      // });
     }
 
     const groupedStudentExamGroups: Record<string, any> = {};

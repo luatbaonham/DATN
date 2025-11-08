@@ -10,9 +10,13 @@ export class ConstraintValidator {
 
     if (!schema) {
       return {
-        valid: true,
-        normalized: rule,
-        warnings: [`⚠️ Chưa có schema cho constraint ${constraintCode}`],
+        valid: false,
+        errors: [
+          {
+            field: 'constraintCode',
+            message: `Constraint ${constraintCode} không tồn tại trong schema`,
+          },
+        ],
       };
     }
 
