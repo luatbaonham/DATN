@@ -14,7 +14,7 @@ export type Chromosome = Gene[];
 export interface GaRoom {
   roomId: number;
   capacity: number;
-  location: number; // location ID
+  locationId: number; // location ID
 }
 
 export interface GaProctor {
@@ -56,7 +56,7 @@ export type SimplifiedExamEvent = {
   courseId: number;
   duration: number;
   roomId: string;
-  location: string;
+  locationId: number;
   proctor: string;
   studentCount: number;
 };

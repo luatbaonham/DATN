@@ -8,20 +8,20 @@ import { Room } from '@modules/algorithm-input/room/entities/room.entity';
 import { Student } from '@modules/core-data/students/entities/student.entity';
 import { Course } from '@modules/algorithm-input/course/entities/course.entity';
 
+interface GaRoomInput {
+  id: number;
+  capacity: number;
+  locationId: number;
+}
 @Injectable()
 export class ExamGroupingService {
   constructor(private readonly em: EntityManager) {}
 
-  async generateExamGroups(examSessionId: number, room: Room[]) {
-    // --- 1️⃣ Kiểm tra đợt thi ---
-    const examSession = await this.em.findOne(
-      ExamSession,
-      { id: examSessionId },
-      { populate: ['location'] },
-    );
-    if (!examSession) throw new NotFoundException('Đợt thi không tồn tại');
-
+  async generateExamGroups(examSessionId: number, room: GaRoomInput[]) {
     // --- 2️⃣ Lấy dữ liệu cần thiết ---
+    // Tạo “proxy entity” cho ExamSession chỉ bằng ID (không cần truy vấn DB)
+    // Dùng khi ta chỉ cần gán quan hệ (ManyToOne) cho ExamGroup
+    const examSession = this.em.getReference(ExamSession, examSessionId);
     // danh sách sinh viên đăng kí môn học
     const registrations = await this.em.find(
       StudentCourseRegistration,
@@ -63,9 +63,6 @@ export class ExamGroupingService {
 
       while (index < students.length) {
         const groupStudents = students.slice(index, index + maxCapacity);
-        // G001, EX 1: 3 nhóm thi: G001, G002 G003, EX2: G001,
-        //xóa code trong exam group
-
         const examGroup = this.em.create(ExamGroup, {
           course,
           examSession, //lấy từ fe
@@ -126,4 +123,3 @@ export class ExamGroupingService {
     };
   }
 }
-///

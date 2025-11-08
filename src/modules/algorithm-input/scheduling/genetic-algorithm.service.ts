@@ -209,9 +209,9 @@ export class GeneticAlgorithmService {
         if (!studentLocationSchedule.has(studentDayKey))
           studentLocationSchedule.set(studentDayKey, []);
         if (
-          !studentLocationSchedule.get(studentDayKey)!.includes(room.location)
+          !studentLocationSchedule.get(studentDayKey)!.includes(room.locationId)
         ) {
-          studentLocationSchedule.get(studentDayKey)!.push(room.location);
+          studentLocationSchedule.get(studentDayKey)!.push(room.locationId);
         }
 
         if (!studentExamSlots.has(studentId))

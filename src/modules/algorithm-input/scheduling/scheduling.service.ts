@@ -48,8 +48,6 @@ export class SchedulingService {
     private readonly em: EntityManager,
     private readonly gaService: GeneticAlgorithmService, // <-- Inject service mới
     private readonly examGroupingService: ExamGroupingService,
-    @InjectRepository(StudentExamGroup)
-    private readonly studentExamGroupRepository: EntityRepository<StudentExamGroup>,
     @InjectRepository(Exam)
     private readonly examRepository: EntityRepository<Exam>,
     @InjectRepository(ExamRegistration)
@@ -115,95 +113,65 @@ export class SchedulingService {
     // --- Chuyển đổi constraint FE sang GA ---
     let advancedConstraints: AdvancedConstraintsDto = {};
 
-    if (dto.constraints) {
+    if (dto.constraints?.length) {
       for (const c of dto.constraints) {
-        switch (c.constraintId) {
-          case 1:
-            advancedConstraints.holiday = c.rule.holiday ?? [];
+        const { constraintCode, rule } = c;
+
+        const validation = ConstraintValidator.validateRule(
+          constraintCode,
+          rule,
+        );
+        if (!validation.valid) {
+          throw new BadRequestException({
+            message: `Rule của constraint ${constraintCode} không hợp lệ`,
+            errors: validation.errors,
+          });
+        }
+
+        // ✅ Gán vào advancedConstraints
+        switch (constraintCode) {
+          case 'HOLIDAY':
+            advancedConstraints.holiday = rule.holiday ?? [];
             break;
-          case 2:
-            advancedConstraints.avoid_weekend = c.rule.avoid_weekend ?? false;
+          case 'AVOID_WEEKEND':
+            advancedConstraints.avoid_weekend = rule.avoid_weekend ?? false;
             break;
-          case 3:
-            advancedConstraints.max_exam_per_day = c.rule.max_exam_per_day ?? 1;
+          case 'MAX_EXAMS_PER_DAY':
+            advancedConstraints.max_exam_per_day = rule.max_exam_per_day ?? 1;
             break;
-          case 4:
-            advancedConstraints.max_location = c.rule.max_location ?? 1;
+          case 'ROOM_LOCATION_LIMIT':
+            advancedConstraints.max_location = rule.max_location ?? 1;
             break;
           default:
-            // ignore hoặc log
             break;
         }
       }
     }
-    // //  Kiểm tra constraint nếu có
-    // if (dto.constraints && dto.constraints.length > 0) {
-    //   for (const c of dto.constraints) {
-    //     const constraint = await this.em.findOne(Constraint, {
-    //       id: c.constraintId,
-    //     });
-    //     if (!constraint) {
-    //       throw new NotFoundException(
-    //         `Constraint ID ${c.constraintId} không tồn tại`,
-    //       );
-    //     }
-
-    //     const validation = ConstraintValidator.validateRule(
-    //       constraint.constraintCode,
-    //       c.rule,
-    //     );
-    //     if (!validation.valid) {
-    //       throw new BadRequestException({
-    //         message: `Rule của constraint ${constraint.constraintCode} không hợp lệ`,
-    //         errors: validation.errors,
-    //       });
-    //     }
-    //   }
-    // }
 
     this.studentsByExamGroup = new Map();
     const examSlotEntities = await this.em.find(ExamSlot, {});
     if (examSlotEntities.length === 0) {
       throw new Error('Không có ca thi (ExamSlot) nào trong CSDL.');
     }
-    // Tải dữ liệu thô
-    const roomEntities = await this.em.find(Room, {
-      id: { $in: dto.roomIds },
-    });
-    const lecturerEntities = await this.em.find(Lecturer, {
-      id: { $in: dto.lecturerIds },
-    });
+    // ds nhóm thi với sinh viên thuộc nhóm thi tự động tạo
     const { examGroups, studentsByExamGroup } =
       await this.examGroupingService.generateExamGroups(
         dto.examSessionId,
-        roomEntities,
+        dto.rooms,
       );
-
-    // Gán lại cho class-level map
+    // gán ngay với cái phía trên trả về
     this.studentsByExamGroup = studentsByExamGroup;
-    const examGroupIds = examGroups.map((eg) => eg.examGroupId);
-    const studentGroupLinks = await this.studentExamGroupRepository.find(
-      { examGroup: { $in: examGroupIds } },
-      { populate: ['student'] },
-    );
-
-    // Xử lý liên kết SV-Nhóm thi
-    for (const link of studentGroupLinks) {
-      const examGroupId = (link.examGroup as any).id;
-      const studentId = (link.student as any).id;
-      if (!this.studentsByExamGroup.has(examGroupId)) {
-        this.studentsByExamGroup.set(examGroupId, []);
-      }
-      this.studentsByExamGroup.get(examGroupId)!.push(studentId);
-    }
-    // Chuyển đổi thành các đối tượng Ga...
-    const rooms: GaRoom[] = roomEntities.map((r) => ({
+    // --- 2️⃣ Không còn truy vấn phòng/giảng viên nữa ---
+    // FE gửi đủ thông tin → chỉ cần map sang đối tượng GA
+    const rooms: GaRoom[] = dto.rooms.map((r) => ({
       roomId: r.id,
       capacity: r.capacity,
-      location: r.location.id,
+      locationId: r.locationId,
     }));
-    const proctors: GaProctor[] = lecturerEntities.map((l) => ({
+
+    const proctors: GaProctor[] = dto.lecturers.map((l) => ({
       proctorId: l.id,
+      name: l.name, // Có thể thêm nếu bạn muốn hiển thị trong kết quả
     }));
 
     const gaExamGroups: GaExamGroup[] = examGroups.map((eg) => {
@@ -370,7 +338,7 @@ export class SchedulingService {
         courseId: examGroup.courseId,
         duration: examGroup.duration,
         roomId: gene.roomId.toString(),
-        location: room.location.toString(),
+        locationId: room.locationId,
         proctor: gene.proctorId.toString(),
         studentCount: studentCount,
       };
