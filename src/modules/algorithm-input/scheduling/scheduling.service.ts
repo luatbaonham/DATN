@@ -37,6 +37,7 @@ import { formatDateToYYYYMMDD, getDayOfWeekName } from './scheduling.utils';
 import { ExamGroupingService } from './exam-grouping.service';
 import { Constraint } from '@modules/constraints/entities/constraint.entity';
 import { AdvancedConstraintsDto } from './dto/advanced-schedule.dto';
+import { ScheduleConfigService } from './scheduling-config.service';
 
 @Injectable()
 export class SchedulingService {
@@ -48,6 +49,7 @@ export class SchedulingService {
     private readonly em: EntityManager,
     private readonly gaService: GeneticAlgorithmService, // <-- Inject service mới
     private readonly examGroupingService: ExamGroupingService,
+    private readonly scheduleConfigService: ScheduleConfigService,
     @InjectRepository(Exam)
     private readonly examRepository: EntityRepository<Exam>,
     @InjectRepository(ExamRegistration)
@@ -88,7 +90,16 @@ export class SchedulingService {
       // 3. Lưu vào Database
       await this.saveScheduleToDb(bestSchedule, dto.examSessionId);
 
-      // 4. Định dạng và Trả về
+      // 4. Lưu cấu hình xếp lịch
+      await this.scheduleConfigService.saveConfig(dto.examSessionId, {
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+        rooms: dto.rooms,
+        lecturers: dto.lecturers,
+        constraints: dto.constraints,
+      });
+
+      // 5. Định dạng và Trả về
       const result = this.formatOutput(bestSchedule);
 
       return {

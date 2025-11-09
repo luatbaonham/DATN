@@ -17,6 +17,8 @@ import { ExamSupervisor } from '@modules/result/exam-supervisor/entities/exam-su
 import { Student } from '@modules/core-data/students/entities/student.entity';
 import { ExamSlot } from '@modules/result/exam-slot/entities/exam-slot.entity';
 import { ExamGroupingService } from './exam-grouping.service';
+import { ScheduleConfigService } from './scheduling-config.service';
+import { ScheduleConfigController } from './scheduling-config.controller';
 
 @Module({
   imports: [
@@ -32,11 +34,12 @@ import { ExamGroupingService } from './exam-grouping.service';
       ExamSlot, // <-- Đảm bảo ExamSlot cũng được import
     ]),
   ],
-  controllers: [SchedulingController],
+  controllers: [SchedulingController, ScheduleConfigController],
   providers: [
     SchedulingService,
     GeneticAlgorithmService, // <-- Thêm service mới vào providers
     ExamGroupingService,
+    ScheduleConfigService,
   ],
 })
 export class SchedulingModule {}
