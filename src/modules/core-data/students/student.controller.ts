@@ -121,94 +121,6 @@ export class StudentController {
     const result = await this.studentService.remove(id);
     return { success: result };
   }
-  /*
-Giải thích:
-FileInterceptor('file'): Middleware xử lý upload file, field name là 'file'
-diskStorage: Lưu file vào ổ đĩa (không lưu trong memory)
-filename: Custom tên file để tránh trùng lặp
-fileFilter: Validate loại file trước khi nhận
-limits: Giới hạn kích thước file
-*/
-  // @Post('upload')
-  // @UseInterceptors(
-  //   FileInterceptor('file', {
-  //     storage: diskStorage({
-  //       destination: './uploads', // ← Thư mục lưu file
-  //       filename: (req, file, callback) => {
-  //         const uniqueSuffix =
-  //           Date.now() + '-' + Math.round(Math.random() * 1e9);
-  //         const ext = extname(file.originalname);
-  //         callback(null, `students-${uniqueSuffix}${ext}`);
-  //         // ↑ Tạo tên file unique: students-1234567890-123456789.xlsx
-  //       },
-  //     }),
-  //     fileFilter: (req, file, callback) => {
-  //       // Chỉ chấp nhận file Excel
-  //       if (!file.originalname.match(/\.(xlsx|xls|csv)$/)) {
-  //         return callback(
-  //           new BadRequestException('Chỉ chấp nhận file Excel (.xlsx, .xls)'),
-  //           false,
-  //         );
-  //       }
-  //       callback(null, true);
-  //     },
-  //     limits: {
-  //       fileSize: 5 * 1024 * 1024, // 5MB
-  //     },
-  //   }),
-  // )
-  // @ApiConsumes('multipart/form-data')
-  // @ApiBody({
-  //   schema: {
-  //     type: 'object',
-  //     properties: {
-  //       file: {
-  //         type: 'string',
-  //         format: 'binary',
-  //       },
-  //     },
-  //   },
-  // })
-  // @ApiResponse({
-  //   status: 201,
-  //   description: 'Upload file thành công',
-  //   schema: {
-  //     type: 'object',
-  //     properties: {
-  //       message: { type: 'string' },
-  //       filename: { type: 'string' },
-  //       path: { type: 'string' },
-  //       size: { type: 'number' },
-  //       imported: { type: 'number' },
-  //       failed: { type: 'number' },
-  //       errors: {
-  //         type: 'array',
-  //         items: {
-  //           type: 'object',
-  //           properties: {
-  //             row: { type: 'number' },
-  //             error: { type: 'string' },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   },
-  // })
-  // async uploadFile(@UploadedFile() file: Express.Multer.File) {
-  //   if (!file) {
-  //     throw new BadRequestException('Không tìm thấy file upload');
-  //   }
-
-  //   const result = await this.studentService.importFromExcel(file.path);
-
-  //   return {
-  //     message: 'Upload file thành công',
-  //     filename: file.originalname,
-  //     path: file.path,
-  //     size: file.size,
-  //     ...result,
-  //   };
-  // }
 
   @Post('upload')
   @UseInterceptors(
@@ -289,5 +201,10 @@ limits: Giới hạn kích thước file
       size: file.size,
       ...result,
     };
+  }
+
+  @Get('student/:studentId')
+  async getStudentExam(@Param('studentId', ParseIntPipe) studentId: number) {
+    return await this.studentService.getStudentExam(studentId);
   }
 }
