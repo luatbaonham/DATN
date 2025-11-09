@@ -66,14 +66,11 @@ export class ExamController {
   async findAll(
     @Query() filter: ExamFilterDto,
   ): Promise<PaginatedResponseDto<ExamResponseDto>> {
-    // Xử lý startDate và endDate để đảm bảo định dạng đúng
     if (filter.startDate) {
-      // Kiểm tra định dạng YYYY-MM-DD
       if (!/^\d{4}-\d{2}-\d{2}$/.test(filter.startDate)) {
         throw new Error('startDate phải có định dạng YYYY-MM-DD');
       }
     }
-
     if (filter.endDate) {
       // Kiểm tra định dạng YYYY-MM-DD
       if (!/^\d{4}-\d{2}-\d{2}$/.test(filter.endDate)) {

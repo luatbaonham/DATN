@@ -9,6 +9,7 @@ import { ConstraintRule } from '@modules/constraints/entities/constraint-rule.en
 import { ExamSession } from '@modules/algorithm-input/exam-session/entities/exam-session.entity';
 import { ConstraintsRuleDto } from './dto/schedule-request.dto';
 import { Constraint } from '@modules/constraints/entities/constraint.entity';
+import { Room } from '@modules/algorithm-input/room/entities/room.entity';
 
 @Injectable()
 export class ScheduleConfigService {
@@ -80,11 +81,34 @@ export class ScheduleConfigService {
       { populate: ['constraint'] },
     );
 
+    const roomIds = config.rooms.map((room: any) => room.id);
+    const roomsWithDetails = await this.em.find(
+      Room,
+      { id: { $in: roomIds } },
+      { populate: ['location'] },
+    );
+
+    // Map rooms với thông tin chi tiết
+    const enrichedRooms = config.rooms.map((roomConfig: any) => {
+      const roomDetail = roomsWithDetails.find((r) => r.id === roomConfig.id);
+      return {
+        ...roomConfig,
+        code: roomDetail?.code || null,
+        location: roomDetail?.location
+          ? {
+              id: roomDetail.location.id,
+              code: roomDetail.location.code,
+              name: roomDetail.location.name,
+            }
+          : null,
+      };
+    });
+
     return {
       examSessionId,
       startDate: config.startDate,
       endDate: config.endDate,
-      rooms: config.rooms,
+      rooms: enrichedRooms,
       lecturers: config.lecturers,
       constraints: constraintRules.map((cr) => ({
         constraintCode: cr.constraint.constraintCode,

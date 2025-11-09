@@ -29,6 +29,8 @@ import {
   ExamDetailDto,
   StudentInExamDto,
   SupervisorInExamDto,
+  RoomInExamDto,
+  SlotInExamDto,
 } from './dto/exam-detail.dto';
 
 @Injectable()
@@ -80,6 +82,7 @@ export class ExamService {
       .leftJoinAndSelect('eg.course', 'c')
       .leftJoinAndSelect('eg.examSession', 'es')
       .leftJoinAndSelect('e.room', 'r')
+      .leftJoinAndSelect('r.location', 'loc')
       .leftJoinAndSelect('e.examSlot', 's');
 
     if (status) qb.andWhere({ status });
@@ -121,7 +124,7 @@ export class ExamService {
     const exam = await this.em.findOne(
       Exam,
       { id },
-      { populate: ['examGroup', 'room', 'examSlot'] },
+      { populate: ['examGroup', 'room', 'room.location', 'examSlot'] },
     );
     if (!exam) throw new NotFoundException('Không tìm thấy kỳ thi');
     return exam;
@@ -315,10 +318,21 @@ export class ExamService {
         examId: exam.id.toString(),
         examGroup: exam.examGroup.id.toString(),
         courseCode: exam.examGroup.course.codeCourse,
+        slot: {
+          id: exam.examSlot.id,
+          slotName: exam.examSlot.slotName,
+          startTime: exam.examSlot.startTime,
+          endTime: exam.examSlot.endTime,
+        },
+        room: {
+          id: exam.room.id,
+          code: exam.room.code,
+          capacity: exam.room.capacity,
+          type: exam.room.type,
+          locationName: exam.room.location.name,
+        },
         courseName: exam.examGroup.course.nameCourse,
         duration: exam.duration,
-        roomId: exam.room.id.toString(),
-        roomName: exam.room.code,
         location: exam.room.location.id.toString(),
         proctor: supervisor ? supervisor.lecturer.id.toString() : '',
         proctorName: supervisorName,
@@ -356,6 +370,7 @@ export class ExamService {
           'examGroup',
           'examGroup.course',
           'room',
+          'room.location',
           'examSlot',
           'registrations',
           'registrations.student',
@@ -397,7 +412,20 @@ export class ExamService {
       courseCode: exam.examGroup.course.codeCourse || undefined,
       courseName: exam.examGroup.course.nameCourse || undefined,
       roomName: exam.room.code || undefined,
+      room: {
+        id: exam.room.id,
+        code: exam.room.code,
+        capacity: exam.room.capacity,
+        type: exam.room.type,
+        locationName: exam.room.location.name,
+      },
       examSlotName: exam.examSlot.slotName || undefined,
+      slot: {
+        id: exam.examSlot.id,
+        slotName: exam.examSlot.slotName,
+        startTime: exam.examSlot.startTime,
+        endTime: exam.examSlot.endTime,
+      },
       students,
       supervisors,
     };

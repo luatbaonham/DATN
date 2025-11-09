@@ -1,18 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreateExamDto } from './create-exam.dto';
-import { IsArray, IsOptional, IsNumber, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsArray, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-
-class SupervisorAssignmentDto {
-  @ApiProperty({ description: 'ID của giảng viên' })
-  @IsNumber()
-  lecturerId!: number;
-
-  @ApiProperty({ description: 'Vai trò của giảng viên', example: 'Supervisor' })
-  @IsString()
-  role!: string;
-}
 
 export class UpdateExamDto extends PartialType(CreateExamDto) {
   @ApiProperty({
@@ -25,13 +14,8 @@ export class UpdateExamDto extends PartialType(CreateExamDto) {
   @IsNumber({}, { each: true })
   studentIds?: number[];
 
-  @ApiProperty({
-    description: 'Danh sách giảng viên giám thị',
-    type: [SupervisorAssignmentDto],
-    required: false,
-  })
   @IsOptional()
   @IsArray()
-  @Type(() => SupervisorAssignmentDto)
-  supervisorIds?: SupervisorAssignmentDto[];
+  @IsNumber({}, { each: true })
+  supervisorIds?: number[];
 }
