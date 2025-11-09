@@ -150,4 +150,26 @@ export class ExamController {
   ): Promise<ExamDetailDto> {
     return this.examService.getExamDetail(id);
   }
+
+  @Delete(':examId/students/:studentId')
+  @ApiOperation({ summary: 'Xóa sinh viên khỏi kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Xóa sinh viên thành công' })
+  async removeStudentFromExam(
+    @Param('examId', ParseIntPipe) examId: number,
+    @Param('studentId', ParseIntPipe) studentId: number,
+  ): Promise<{ message: string }> {
+    await this.examService.removeStudentFromExam(examId, studentId);
+    return { message: 'Xóa sinh viên khỏi kỳ thi thành công' };
+  }
+
+  @Delete(':examId/supervisors/:supervisorId')
+  @ApiOperation({ summary: 'Xóa giám thị khỏi kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Xóa giám thị thành công' })
+  async removeSupervisorFromExam(
+    @Param('examId', ParseIntPipe) examId: number,
+    @Param('supervisorId', ParseIntPipe) supervisorId: number,
+  ): Promise<{ message: string }> {
+    await this.examService.removeSupervisorFromExam(examId, supervisorId);
+    return { message: 'Xóa giám thị khỏi kỳ thi thành công' };
+  }
 }
