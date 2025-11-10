@@ -1,6 +1,46 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 
+export class RoomInExamDto {
+  @ApiProperty()
+  @Expose()
+  id!: number;
+
+  @ApiProperty()
+  @Expose()
+  code!: string;
+
+  @ApiProperty()
+  @Expose()
+  capacity!: number;
+
+  @ApiProperty()
+  @Expose()
+  type!: string;
+
+  @ApiProperty()
+  @Expose()
+  locationName!: string;
+}
+
+export class SlotInExamDto {
+  @ApiProperty()
+  @Expose()
+  id!: number;
+
+  @ApiProperty()
+  @Expose()
+  slotName!: string;
+
+  @ApiProperty()
+  @Expose()
+  startTime!: string;
+
+  @ApiProperty()
+  @Expose()
+  endTime!: string;
+}
+
 export class StudentInExamDto {
   @ApiProperty()
   @Expose()
@@ -74,9 +114,19 @@ export class ExamDetailDto {
   @Expose()
   roomName?: string;
 
+  @ApiProperty({ type: RoomInExamDto })
+  @Expose()
+  @Type(() => RoomInExamDto)
+  room!: RoomInExamDto;
+
   @ApiProperty()
   @Expose()
   examSlotName?: string;
+
+  @ApiProperty({ type: SlotInExamDto })
+  @Expose()
+  @Type(() => SlotInExamDto)
+  slot!: SlotInExamDto;
 
   @ApiProperty({ type: [StudentInExamDto] })
   @Expose()

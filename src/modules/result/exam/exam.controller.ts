@@ -43,9 +43,41 @@ export class ExamController {
   @ApiOperation({ summary: 'Lấy danh sách kỳ thi' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    type: String,
+    description: 'Ngày bắt đầu (YYYY-MM-DD)',
+    example: '2025-11-06',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'Ngày kết thúc (YYYY-MM-DD)',
+    example: '2025-11-06',
+  })
+  @ApiQuery({
+    name: 'examSessionId',
+    required: false,
+    type: Number,
+    description: 'ID của đợt thi',
+  })
   async findAll(
     @Query() filter: ExamFilterDto,
   ): Promise<PaginatedResponseDto<ExamResponseDto>> {
+    if (filter.startDate) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(filter.startDate)) {
+        throw new Error('startDate phải có định dạng YYYY-MM-DD');
+      }
+    }
+    if (filter.endDate) {
+      // Kiểm tra định dạng YYYY-MM-DD
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(filter.endDate)) {
+        throw new Error('endDate phải có định dạng YYYY-MM-DD');
+      }
+    }
+
     return this.examService.findAll(filter);
   }
 
@@ -117,5 +149,27 @@ export class ExamController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ExamDetailDto> {
     return this.examService.getExamDetail(id);
+  }
+
+  @Delete(':examId/students/:studentId')
+  @ApiOperation({ summary: 'Xóa sinh viên khỏi kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Xóa sinh viên thành công' })
+  async removeStudentFromExam(
+    @Param('examId', ParseIntPipe) examId: number,
+    @Param('studentId', ParseIntPipe) studentId: number,
+  ): Promise<{ message: string }> {
+    await this.examService.removeStudentFromExam(examId, studentId);
+    return { message: 'Xóa sinh viên khỏi kỳ thi thành công' };
+  }
+
+  @Delete(':examId/supervisors/:supervisorId')
+  @ApiOperation({ summary: 'Xóa giám thị khỏi kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Xóa giám thị thành công' })
+  async removeSupervisorFromExam(
+    @Param('examId', ParseIntPipe) examId: number,
+    @Param('supervisorId', ParseIntPipe) supervisorId: number,
+  ): Promise<{ message: string }> {
+    await this.examService.removeSupervisorFromExam(examId, supervisorId);
+    return { message: 'Xóa giám thị khỏi kỳ thi thành công' };
   }
 }

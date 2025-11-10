@@ -29,6 +29,8 @@ import {
   ExamDetailDto,
   StudentInExamDto,
   SupervisorInExamDto,
+  RoomInExamDto,
+  SlotInExamDto,
 } from './dto/exam-detail.dto';
 
 @Injectable()
@@ -62,7 +64,16 @@ export class ExamService {
   async findAll(
     filter: ExamFilterDto,
   ): Promise<PaginatedResponseDto<ExamResponseDto>> {
-    const { page = 1, limit = 10, status, examGroupName, roomName } = filter;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      examGroupName,
+      roomName,
+      startDate,
+      endDate,
+      examSessionId,
+    } = filter;
     const offset = (page - 1) * limit;
 
     const qb = this.em
@@ -71,6 +82,7 @@ export class ExamService {
       .leftJoinAndSelect('eg.course', 'c')
       .leftJoinAndSelect('eg.examSession', 'es')
       .leftJoinAndSelect('e.room', 'r')
+      .leftJoinAndSelect('r.location', 'loc')
       .leftJoinAndSelect('e.examSlot', 's');
 
     if (status) qb.andWhere({ status });
@@ -78,7 +90,27 @@ export class ExamService {
       qb.andWhere('LOWER(eg.name) LIKE LOWER(?)', [`%${examGroupName}%`]);
     if (roomName) qb.andWhere('LOWER(r.name) LIKE LOWER(?)', [`%${roomName}%`]);
 
-    qb.orderBy({ createdAt: 'DESC' }).limit(limit).offset(offset);
+    // Lọc theo ngày bắt đầu
+    if (startDate) {
+      qb.andWhere({ examDate: { $gte: new Date(startDate) } });
+    }
+
+    // Lọc theo ngày kết thúc
+    if (endDate) {
+      const endDateTime = new Date(endDate);
+      // Set to end of day to include the entire end date
+      endDateTime.setHours(23, 59, 59, 999);
+      qb.andWhere({ examDate: { $lte: endDateTime } });
+    }
+
+    // Lọc theo exam session
+    if (examSessionId) {
+      qb.andWhere({ examGroup: { examSession: examSessionId } });
+    }
+
+    qb.orderBy({ examDate: 'ASC', examSlot: { startTime: 'ASC' } })
+      .limit(limit)
+      .offset(offset);
 
     const [data, total] = await qb.getResultAndCount();
     const items = plainToInstance(ExamResponseDto, data, {
@@ -92,7 +124,7 @@ export class ExamService {
     const exam = await this.em.findOne(
       Exam,
       { id },
-      { populate: ['examGroup', 'room', 'examSlot'] },
+      { populate: ['examGroup', 'room', 'room.location', 'examSlot'] },
     );
     if (!exam) throw new NotFoundException('Không tìm thấy kỳ thi');
     return exam;
@@ -142,59 +174,15 @@ export class ExamService {
       delete cleanDto['slotId'];
     }
 
-    // Handle students update
-    if (dto.studentIds !== undefined) {
-      // Remove all existing registrations
-      await this.em.removeAndFlush(exam.registrations.getItems());
-
-      // Add new registrations
-      if (dto.studentIds.length > 0) {
-        const students = await this.em.find(Student, {
-          id: { $in: dto.studentIds },
-        });
-
-        const newRegistrations = students.map((student) =>
-          this.em.create(ExamRegistration, {
-            exam,
-            student,
-          }),
-        );
-
-        exam.registrations.set(newRegistrations);
-      }
+    // Handle students update - only add new students
+    if (dto.studentIds !== undefined && dto.studentIds.length > 0) {
+      await this.addStudentsToExam(exam.id, dto.studentIds);
       delete cleanDto['studentIds'];
     }
 
-    // Handle supervisors update
-    if (dto.supervisorIds !== undefined) {
-      // Remove all existing supervisors
-      await this.em.removeAndFlush(exam.supervisors.getItems());
-
-      // Add new supervisors
-      if (dto.supervisorIds.length > 0) {
-        const lecturerIds = dto.supervisorIds.map((s) => s.lecturerId);
-        const lecturers = await this.em.find(Lecturer, {
-          id: { $in: lecturerIds },
-        });
-
-        const newSupervisors = dto.supervisorIds.map((assignment) => {
-          const lecturer = lecturers.find(
-            (l) => l.id === assignment.lecturerId,
-          );
-          if (!lecturer) {
-            throw new NotFoundException(
-              `Không tìm thấy giảng viên với ID ${assignment.lecturerId}`,
-            );
-          }
-
-          return this.em.create(ExamSupervisor, {
-            exam,
-            lecturer,
-          });
-        });
-
-        exam.supervisors.set(newSupervisors);
-      }
+    // Handle supervisors update - only add new supervisors
+    if (dto.supervisorIds !== undefined && dto.supervisorIds.length > 0) {
+      await this.addSupervisorsToExam(exam.id, dto.supervisorIds);
       delete cleanDto['supervisorIds'];
     }
 
@@ -286,10 +274,21 @@ export class ExamService {
         examId: exam.id.toString(),
         examGroup: exam.examGroup.id.toString(),
         courseCode: exam.examGroup.course.codeCourse,
+        slot: {
+          id: exam.examSlot.id,
+          slotName: exam.examSlot.slotName,
+          startTime: exam.examSlot.startTime,
+          endTime: exam.examSlot.endTime,
+        },
+        room: {
+          id: exam.room.id,
+          code: exam.room.code,
+          capacity: exam.room.capacity,
+          type: exam.room.type,
+          locationName: exam.room.location.name,
+        },
         courseName: exam.examGroup.course.nameCourse,
         duration: exam.duration,
-        roomId: exam.room.id.toString(),
-        roomName: exam.room.code,
         location: exam.room.location.id.toString(),
         proctor: supervisor ? supervisor.lecturer.id.toString() : '',
         proctorName: supervisorName,
@@ -327,6 +326,7 @@ export class ExamService {
           'examGroup',
           'examGroup.course',
           'room',
+          'room.location',
           'examSlot',
           'registrations',
           'registrations.student',
@@ -368,7 +368,20 @@ export class ExamService {
       courseCode: exam.examGroup.course.codeCourse || undefined,
       courseName: exam.examGroup.course.nameCourse || undefined,
       roomName: exam.room.code || undefined,
+      room: {
+        id: exam.room.id,
+        code: exam.room.code,
+        capacity: exam.room.capacity,
+        type: exam.room.type,
+        locationName: exam.room.location.name,
+      },
       examSlotName: exam.examSlot.slotName || undefined,
+      slot: {
+        id: exam.examSlot.id,
+        slotName: exam.examSlot.slotName,
+        startTime: exam.examSlot.startTime,
+        endTime: exam.examSlot.endTime,
+      },
       students,
       supervisors,
     };
@@ -376,6 +389,159 @@ export class ExamService {
     return plainToInstance(ExamDetailDto, result, {
       excludeExtraneousValues: true,
     });
+  }
+
+  /**
+   * API: Xóa sinh viên khỏi kỳ thi
+   */
+  async removeStudentFromExam(
+    examId: number,
+    studentId: number,
+  ): Promise<void> {
+    const exam = await this.em.findOne(
+      Exam,
+      { id: examId },
+      { populate: ['registrations'] },
+    );
+
+    if (!exam) {
+      throw new NotFoundException('Không tìm thấy kỳ thi');
+    }
+
+    const registration = exam.registrations
+      .getItems()
+      .find((reg) => reg.student.id === studentId);
+
+    if (!registration) {
+      throw new NotFoundException('Sinh viên không có trong kỳ thi này');
+    }
+
+    await this.em.removeAndFlush(registration);
+  }
+
+  /**
+   * API: Xóa giám thị khỏi kỳ thi
+   */
+  async removeSupervisorFromExam(
+    examId: number,
+    supervisorId: number,
+  ): Promise<void> {
+    const exam = await this.em.findOne(
+      Exam,
+      { id: examId },
+      { populate: ['supervisors'] },
+    );
+
+    if (!exam) {
+      throw new NotFoundException('Không tìm thấy kỳ thi');
+    }
+
+    const supervisor = exam.supervisors
+      .getItems()
+      .find((sup) => sup.lecturer.id === supervisorId);
+
+    if (!supervisor) {
+      throw new NotFoundException('Giám thị không có trong kỳ thi này');
+    }
+
+    await this.em.removeAndFlush(supervisor);
+  }
+
+  /**
+   * API: Thêm sinh viên vào kỳ thi
+   */
+  async addStudentsToExam(examId: number, studentIds: number[]): Promise<void> {
+    const exam = await this.em.findOne(
+      Exam,
+      { id: examId },
+      { populate: ['registrations'] },
+    );
+
+    if (!exam) {
+      throw new NotFoundException('Không tìm thấy kỳ thi');
+    }
+
+    const students = await this.em.find(Student, {
+      id: { $in: studentIds },
+    });
+
+    if (students.length !== studentIds.length) {
+      throw new NotFoundException('Một số sinh viên không tồn tại');
+    }
+
+    // Kiểm tra sinh viên đã đăng ký chưa
+    const existingStudentIds = exam.registrations
+      .getItems()
+      .map((reg) => reg.student.id);
+
+    const newStudents = students.filter(
+      (student) => !existingStudentIds.includes(student.id),
+    );
+
+    if (newStudents.length === 0) {
+      throw new ConflictException(
+        'Tất cả sinh viên đã được đăng ký trong kỳ thi này',
+      );
+    }
+
+    const newRegistrations = newStudents.map((student) =>
+      this.em.create(ExamRegistration, {
+        exam,
+        student,
+      }),
+    );
+
+    await this.em.persistAndFlush(newRegistrations);
+  }
+
+  /**
+   * API: Thêm giám thị vào kỳ thi
+   */
+  async addSupervisorsToExam(
+    examId: number,
+    supervisorIds: number[],
+  ): Promise<void> {
+    const exam = await this.em.findOne(
+      Exam,
+      { id: examId },
+      { populate: ['supervisors'] },
+    );
+
+    if (!exam) {
+      throw new NotFoundException('Không tìm thấy kỳ thi');
+    }
+
+    const lecturers = await this.em.find(Lecturer, {
+      id: { $in: supervisorIds },
+    });
+
+    if (lecturers.length !== supervisorIds.length) {
+      throw new NotFoundException('Một số giảng viên không tồn tại');
+    }
+
+    // Kiểm tra giám thị đã được phân công chưa
+    const existingSupervisorIds = exam.supervisors
+      .getItems()
+      .map((sup) => sup.lecturer.id);
+
+    const newLecturers = lecturers.filter(
+      (lecturer) => !existingSupervisorIds.includes(lecturer.id),
+    );
+
+    if (newLecturers.length === 0) {
+      throw new ConflictException(
+        'Tất cả giảng viên đã được phân công trong kỳ thi này',
+      );
+    }
+
+    const newSupervisors = newLecturers.map((lecturer) =>
+      this.em.create(ExamSupervisor, {
+        exam,
+        lecturer,
+      }),
+    );
+
+    await this.em.persistAndFlush(newSupervisors);
   }
 
   // --- Utility functions ---
