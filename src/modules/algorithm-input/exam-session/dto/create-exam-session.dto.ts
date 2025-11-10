@@ -43,6 +43,13 @@ export class CreateExamSessionDto {
   description?: string;
 
   @ApiProperty({
+    description: 'Id niên khóa của đợt thi',
+    example: 1,
+  })
+  @IsString()
+  academic_year_id!: number;
+
+  @ApiProperty({
     description: 'ID địa điểm tổ chức thi',
     example: 1,
   })

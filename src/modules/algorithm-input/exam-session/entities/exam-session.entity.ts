@@ -9,6 +9,7 @@ import {
 import { ExamGroup } from '@modules/algorithm-input/exam-group/entities/exam-group.entity';
 import { Locations } from '@modules/algorithm-input/location/entities/locations.entity';
 import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
+import { AcademicYear } from '@modules/core-data/academic-year/entities/academic-year.entity';
 
 @Entity({ tableName: 'exam_sessions' })
 export class ExamSession {
@@ -38,6 +39,9 @@ export class ExamSession {
 
   @OneToMany(() => StudentCourseRegistration, (scr) => scr.examSession)
   registrations = new Collection<StudentCourseRegistration>(this);
+
+  @ManyToOne(() => AcademicYear)
+  academicYear!: AcademicYear;
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;

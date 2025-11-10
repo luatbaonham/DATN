@@ -31,6 +31,7 @@ import { ClassSeeder } from './class.seeder';
 import { RoomSeeder } from './room.seed';
 import { UserAdminSeeder } from './user-admin.seeder';
 import { CourseSeeder } from './course.seeder';
+import { AcademicYear } from '@modules/core-data/academic-year/entities/academic-year.entity';
 
 export class InitSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
@@ -54,6 +55,13 @@ export class InitSeeder extends Seeder {
     // 4️⃣ Class
     await this.call(em, [ClassSeeder]);
     console.log('✅ Đã seed Class:');
+
+    const academicYear = em.create(AcademicYear, {
+      name: '2025-2026',
+      startDate: new Date('2025-09-01'),
+      endDate: new Date('2026-08-31'),
+    });
+    await em.persistAndFlush(academicYear);
 
     // // 5️⃣ Lecturer
     // await this.call(em, [LecturerSeeder]);
@@ -79,6 +87,7 @@ export class InitSeeder extends Seeder {
       end_date: new Date('2025-12-31'),
       is_active: true,
       description: 'Đợt thi cuối học kỳ 1 năm học 2025-2026',
+      academicYear,
       location,
     });
     await em.persistAndFlush(examSession);

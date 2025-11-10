@@ -1,12 +1,14 @@
 import {
   Collection,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
 import { ExamGroup } from '@modules/algorithm-input/exam-group/entities/exam-group.entity';
 import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
+import { Department } from '@modules/core-data/departments/entities/department.entity';
 
 @Entity()
 export class Course {

@@ -13,6 +13,7 @@ import { Room } from '../room/entities/room.entity';
 import { ExamGroup } from '../exam-group/entities/exam-group.entity';
 import { StudentExamGroup } from '../student-exam-group/entities/student-exam-group.entity';
 import { Course } from '../course/entities/course.entity';
+import { AcademicYear } from '@modules/core-data/academic-year/entities/academic-year.entity';
 
 @Injectable()
 export class ExamSessionService {
@@ -20,9 +21,14 @@ export class ExamSessionService {
 
   async create(dto: CreateExamSessionDto): Promise<ExamSession> {
     const location = await this.em.getReference(Locations, dto.location_id);
+    const academic_year = this.em.getReference(
+      AcademicYear,
+      dto.academic_year_id,
+    );
     const examSession = this.em.create(ExamSession, {
       ...dto,
       location,
+      academicYear: academic_year,
     });
     await this.em.persistAndFlush(examSession);
     return examSession;

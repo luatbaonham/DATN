@@ -69,6 +69,10 @@ export class LecturerDto {
   @ApiProperty({ example: 'Nguyễn Văn A' })
   @IsString()
   name!: string;
+
+  @ApiProperty({ example: 'GV001' })
+  @IsString()
+  lecturerCode!: string;
 }
 
 // -----------------------------

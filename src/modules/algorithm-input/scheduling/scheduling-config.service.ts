@@ -85,7 +85,12 @@ export class ScheduleConfigService {
       startDate: config.startDate,
       endDate: config.endDate,
       rooms: config.rooms,
-      lecturers: config.lecturers,
+      lecturers: config.lecturers.map((l) => ({
+        id: l.id,
+        name: l.name,
+        lectureCode: l.lecturerCode, // 👈 thêm dòng này
+      })),
+
       constraints: constraintRules.map((cr) => ({
         constraintCode: cr.constraint.constraintCode,
         rule: cr.rule,
