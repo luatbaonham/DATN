@@ -32,6 +32,14 @@ export class StudentCourseRegistrationSeeder extends Seeder {
     const regs: StudentCourseRegistration[] = [];
 
     for (const student of students) {
+      console.log(student.id, student.classes?.department?.id);
+      console.log(
+        courseDepartments.map((cd) => ({
+          id: cd.id,
+          course: cd.course?.id,
+          department: cd.department?.id,
+        })),
+      );
       const studentDept = student.classes.department;
       const sameDeptCourses = courseDepartments.filter(
         (cd) => cd.department.id === studentDept.id,

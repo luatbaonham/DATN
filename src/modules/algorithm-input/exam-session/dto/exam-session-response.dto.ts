@@ -1,5 +1,6 @@
+import { AcademicYearResponseDto } from '@modules/core-data/academic-year/dto/academic-year-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 
 @Exclude()
 export class ExamSessionResponseDto {
@@ -36,6 +37,14 @@ export class ExamSessionResponseDto {
   })
   @Expose()
   description?: string;
+
+  @ApiProperty({
+    type: () => AcademicYearResponseDto,
+    description: 'Thông tin niên khóa',
+  })
+  @Expose()
+  @Type(() => AcademicYearResponseDto)
+  academicYear!: AcademicYearResponseDto;
 
   @ApiProperty({
     description: 'Ngày tạo bản ghi',
