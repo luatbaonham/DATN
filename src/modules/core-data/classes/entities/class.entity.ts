@@ -7,6 +7,7 @@ import {
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
+import { AcademicYear } from '@modules/core-data/academic-year/entities/academic-year.entity';
 import { Department } from '@modules/core-data/departments/entities/department.entity';
 
 @Entity()
@@ -25,6 +26,9 @@ export class Classes {
 
   @ManyToOne(() => Department)
   department!: Department;
+
+  @ManyToOne(() => AcademicYear)
+  nam_nhap_hoc!: AcademicYear;
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;

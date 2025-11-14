@@ -10,18 +10,18 @@ export class CreateStudentCourseRegistrationDto {
   student_id!: number;
 
   @ApiProperty({
-    description: 'ID học phần mà sinh viên đăng ký',
-    example: 101,
-  })
-  @IsInt()
-  course_id!: number;
-
-  @ApiProperty({
     description: 'ID đợt thi mà sinh viên đăng ký',
     example: 5,
   })
   @IsInt()
   exam_session_id!: number;
+
+  @ApiProperty({
+    example: 1,
+    description: 'ID tổ bộ môn (FK CourseDepartment)',
+  })
+  @IsInt()
+  course_department_id!: number;
 
   @ApiProperty({
     description:

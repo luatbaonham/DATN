@@ -26,4 +26,12 @@ export class CreateClassDto {
   @IsNumber({}, { message: 'ID khoa phải là số' })
   @IsNotEmpty({ message: 'ID khoa không được để trống' })
   departmentId!: number;
+
+  @ApiProperty({
+    description: 'ID niên khóa',
+    example: 1,
+  })
+  @IsNumber({}, { message: 'ID niên khóa phải là số' })
+  @IsNotEmpty({ message: 'ID niên khóa không được để trống' })
+  id_nam_nhap_hoc!: number;
 }

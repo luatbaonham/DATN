@@ -23,13 +23,26 @@ export class CreateExamGroupDto {
   @Min(0)
   expected_student_count!: number;
 
-  @ApiProperty({ example: 1, description: 'ID học phần (FK Course)' })
-  @IsInt()
-  course_id!: number;
-
   @ApiProperty({ example: 1, description: 'ID đợt thi (FK ExamSession)' })
   @IsInt()
   exam_session_id!: number;
+
+  @ApiProperty({
+    example: 1,
+    description: 'ID tổ bộ môn (FK CourseDepartment)',
+  })
+  @IsInt()
+  course_department_id!: number;
+
+  @ApiProperty({
+    description: 'Sức chứa phòng được gợi ý (từ thuật toán)',
+    example: 60,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  recommended_room_capacity?: number;
 
   @ApiProperty({
     description: 'Trạng thái nhóm thi', //trạng thái này là nhóm thi đã đc công bố hay gì hay chưa
@@ -39,12 +52,4 @@ export class CreateExamGroupDto {
   @IsOptional()
   @IsString()
   status?: string;
-
-  @ApiProperty({
-    description: 'Trạng thái nhóm thi', // true: đang dùng, false: bị hủy (khi tạo lại)
-    example: true,
-    default: true,
-  })
-  @IsBoolean({ message: 'Trạng thái phải là true hoặc false' })
-  is_active!: boolean;
 }

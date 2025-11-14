@@ -14,6 +14,7 @@ import { ExamGroup } from '../exam-group/entities/exam-group.entity';
 import { StudentExamGroup } from '../student-exam-group/entities/student-exam-group.entity';
 import { Course } from '../course/entities/course.entity';
 import { AcademicYear } from '@modules/core-data/academic-year/entities/academic-year.entity';
+import { CourseDepartment } from '../course-department/entities/course-department.entity';
 
 @Injectable()
 export class ExamSessionService {
@@ -58,7 +59,7 @@ export class ExamSessionService {
         is_active: true,
       },
       {
-        populate: ['student', 'course'],
+        populate: ['student'],
       },
     );
 
@@ -79,14 +80,17 @@ export class ExamSessionService {
     // 3. Nhóm sinh viên theo môn học
     const courseStudentMap = new Map<
       number,
-      { course: Course; studentIds: number[] }
+      { courseDepartment: CourseDepartment; studentIds: number[] }
     >();
 
     for (const reg of registrations) {
-      const courseId = reg.course.id;
+      const cd = reg.courseDepartment; // CourseDepartment
+      if (!cd) continue; // bỏ nếu không có
+
+      const courseId = cd.course.id;
       if (!courseStudentMap.has(courseId)) {
         courseStudentMap.set(courseId, {
-          course: reg.course,
+          courseDepartment: cd,
           studentIds: [],
         });
       }
@@ -98,7 +102,7 @@ export class ExamSessionService {
     let studentExamGroupsCreated = 0;
 
     for (const [courseId, data] of courseStudentMap.entries()) {
-      const { course, studentIds } = data;
+      const { courseDepartment, studentIds } = data;
       const totalStudents = studentIds.length;
       let remainingStudents = totalStudents;
       let groupCounter = 1;
@@ -110,13 +114,17 @@ export class ExamSessionService {
           studentIndex,
           studentIndex + groupSize,
         );
+
+        const recommendedRoom =
+          rooms.find((r) => r.capacity >= groupSize) || rooms[rooms.length - 1];
         // Tạo exam group
-        const examGroupCode = `${course.codeCourse}-${examSession.name}-G${groupCounter}`;
         const examGroup = this.em.create(ExamGroup, {
           expected_student_count: groupSize,
+          actual_student_count: groupSize, // nên gán luôn
           status: 'not_scheduled',
-          course: course,
-          examSession: examSession,
+          examSession,
+          courseDepartment, // ✅ bắt buộc
+          recommended_room_capacity: recommendedRoom.capacity, // nếu muốn GA dùng
         });
 
         await this.em.persistAndFlush(examGroup);

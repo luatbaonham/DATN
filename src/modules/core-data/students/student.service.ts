@@ -334,7 +334,6 @@ export class StudentService {
       { student: studentId },
       {
         populate: [
-          'examGroup.course',
           'examGroup.exam',
           'examGroup.exam.examSlot',
           'examGroup.exam.room',
@@ -349,7 +348,7 @@ export class StudentService {
       const { examSlot, room, examDate, duration } = exam;
 
       return {
-        course: seg.examGroup.course.nameCourse,
+        course: seg.examGroup.courseDepartment.course.nameCourse,
         date: examDate.toISOString().split('T')[0],
         slot: `${examSlot.startTime} - ${examSlot.endTime}`,
         room: room.code,

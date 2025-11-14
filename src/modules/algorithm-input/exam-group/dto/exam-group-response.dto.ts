@@ -1,3 +1,4 @@
+import { CourseDepartmentResponseDto } from '@modules/algorithm-input/course-department/dto/course-department-response.dto';
 import { CourseResponseDto } from '@modules/algorithm-input/course/dto/course-response.dto';
 import { ExamSessionResponseDto } from '@modules/algorithm-input/exam-session/dto/exam-session-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
@@ -18,10 +19,28 @@ export class ExamGroupResponseDto {
   @Expose()
   expected_student_count!: number;
 
-  @ApiProperty({ type: CourseResponseDto, description: 'Thông tin khóa học' })
-  @Type(() => CourseResponseDto)
+  @ApiProperty({
+    example: 45,
+    description: 'Số sinh viên thực tế',
+  })
   @Expose()
-  course!: CourseResponseDto;
+  actual_student_count!: number;
+
+  @ApiProperty({
+    example: 60,
+    description: 'Sức chứa phòng được gợi ý bởi thuật toán',
+    required: false,
+  })
+  @Expose()
+  recommended_room_capacity?: number;
+
+  @ApiProperty({
+    type: () => CourseDepartmentResponseDto,
+    description: 'Thông tin tổ bộ môn (CourseDepartment)',
+  })
+  @Expose()
+  @Type(() => CourseDepartmentResponseDto)
+  courseDepartment!: CourseDepartmentResponseDto;
 
   @ApiProperty({
     type: ExamSessionResponseDto,

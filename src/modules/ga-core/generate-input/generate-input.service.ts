@@ -40,11 +40,7 @@ export class GenerateInputService {
     // --- 2️⃣ Gom dữ liệu đầu vào ---
     const [examGroups, rooms, students, lecturers, studentExamGroups] =
       await Promise.all([
-        this.em.find(
-          ExamGroup,
-          { examSession: examSessionId },
-          { populate: ['course'] },
-        ),
+        this.em.find(ExamGroup, { examSession: examSessionId }),
         this.em.find(Room, { location: examSession.location }),
         this.em.find(Student, {}),
         this.em.find(Lecturer, {}),
@@ -104,7 +100,7 @@ export class GenerateInputService {
       }
 
       groupedStudentExamGroups[studentId].examGroups.push({
-        name: seg.examGroup.course?.nameCourse ?? '',
+        name: seg.examGroup.courseDepartment?.course?.nameCourse ?? '',
       });
     }
 
@@ -122,10 +118,11 @@ export class GenerateInputService {
       examGroups: examGroups.map((g) => ({
         id: g.id,
         expectedStudentCount: g.expected_student_count ?? 0,
-        duration_course_exam: g.course?.duration_course_exam ?? 90,
-        courseId: g.course?.id,
-        courseCode: g.course?.codeCourse,
-        courseName: g.course?.nameCourse,
+        duration_course_exam:
+          g.courseDepartment?.course?.duration_course_exam ?? 90,
+        courseId: g.courseDepartment?.course?.id ?? null,
+        courseCode: g.courseDepartment?.course?.codeCourse ?? '',
+        courseName: g.courseDepartment?.course?.nameCourse ?? '',
       })),
       rooms: rooms.map((r) => ({
         id: r.id,

@@ -2,6 +2,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Exclude, Type } from 'class-transformer';
 import { DepartmentResponseDto } from '@modules/core-data/departments/dto/department-response.dto';
+import { AcademicYearResponseDto } from '@modules/core-data/academic-year/dto/academic-year-response.dto';
 
 @Exclude() // ẩn toàn bộ field mặc định
 export class ClassResponseDto {
@@ -24,6 +25,14 @@ export class ClassResponseDto {
     type: DepartmentResponseDto,
   })
   department!: DepartmentResponseDto;
+
+  @Expose()
+  @Type(() => AcademicYearResponseDto)
+  @ApiProperty({
+    description: 'Thông tin năm nhập học',
+    type: AcademicYearResponseDto,
+  })
+  nam_nhap_hoc!: AcademicYearResponseDto;
 
   @ApiProperty({
     example: '2023-10-10T10:00:00Z',

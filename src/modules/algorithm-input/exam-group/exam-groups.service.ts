@@ -9,22 +9,28 @@ import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { ExamGroupResponseDto } from './dto/exam-group-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { ExamGroupFilterDto } from './dto/exam-group-filter.dto';
+import { CourseDepartment } from '../course-department/entities/course-department.entity';
 
 @Injectable()
 export class ExamGroupsService {
   constructor(private readonly em: EntityManager) {}
 
   async create(dto: CreateExamGroupDto): Promise<ExamGroup> {
-    const course = await this.em.getReference(Course, dto.course_id);
     const examSession = await this.em.getReference(
       ExamSession,
       dto.exam_session_id,
     );
+    const courseDepartment = await this.em.getReference(
+      CourseDepartment,
+      dto.course_department_id,
+    );
 
     const examGroup = this.em.create(ExamGroup, {
-      ...dto,
-      status: dto.status ?? 'not scheduled',
-      course,
+      expected_student_count: dto.expected_student_count,
+      actual_student_count: 0, // default
+      status: dto.status ?? 'not_scheduled',
+      recommended_room_capacity: dto.recommended_room_capacity,
+      courseDepartment,
       examSession,
     });
     await this.em.persistAndFlush(examGroup);
@@ -42,7 +48,7 @@ export class ExamGroupsService {
       ExamGroup,
       {}, // điều kiện filter (nếu có thì thêm ở đây)
       {
-        populate: ['course', 'examSession'], // load 2 quan hệ
+        populate: ['examSession'], // load 2 quan hệ
         orderBy: { createdAt: 'DESC' },
         limit,
         offset,

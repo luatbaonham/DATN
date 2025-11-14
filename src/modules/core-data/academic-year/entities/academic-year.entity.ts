@@ -7,6 +7,7 @@ import {
   Unique,
 } from '@mikro-orm/core';
 import { ExamSession } from '@modules/algorithm-input/exam-session/entities/exam-session.entity';
+import { Classes } from '@modules/core-data/classes/entities/class.entity';
 
 @Entity()
 export class AcademicYear {
@@ -25,6 +26,9 @@ export class AcademicYear {
 
   @OneToMany(() => ExamSession, (examSession) => examSession.academicYear)
   examSessions = new Collection<ExamSession>(this);
+
+  @OneToMany(() => Classes, (cls) => cls.nam_nhap_hoc)
+  classes = new Collection<Classes>(this);
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date = new Date();

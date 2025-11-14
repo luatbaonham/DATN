@@ -273,7 +273,7 @@ export class ExamService {
         dayOfWeek: dayName,
         examId: exam.id.toString(),
         examGroup: exam.examGroup.id.toString(),
-        courseCode: exam.examGroup.course.codeCourse,
+        courseCode: exam.examGroup.courseDepartment.course.codeCourse,
         slot: {
           id: exam.examSlot.id,
           slotName: exam.examSlot.slotName,
@@ -287,7 +287,7 @@ export class ExamService {
           type: exam.room.type,
           locationName: exam.room.location.name,
         },
-        courseName: exam.examGroup.course.nameCourse,
+        courseName: exam.examGroup.courseDepartment.course.nameCourse,
         duration: exam.duration,
         location: exam.room.location.id.toString(),
         proctor: supervisor ? supervisor.lecturer.id.toString() : '',
@@ -324,7 +324,6 @@ export class ExamService {
       {
         populate: [
           'examGroup',
-          'examGroup.course',
           'room',
           'room.location',
           'examSlot',
@@ -365,8 +364,10 @@ export class ExamService {
       examDate: exam.examDate,
       duration: exam.duration,
       status: exam.status || 'Draft',
-      courseCode: exam.examGroup.course.codeCourse || undefined,
-      courseName: exam.examGroup.course.nameCourse || undefined,
+      courseCode:
+        exam.examGroup.courseDepartment.course.codeCourse || undefined,
+      courseName:
+        exam.examGroup.courseDepartment.course.nameCourse || undefined,
       roomName: exam.room.code || undefined,
       room: {
         id: exam.room.id,

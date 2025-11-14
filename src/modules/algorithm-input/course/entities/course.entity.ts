@@ -6,6 +6,7 @@ import {
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
+import { CourseDepartment } from '@modules/algorithm-input/course-department/entities/course-department.entity';
 import { ExamGroup } from '@modules/algorithm-input/exam-group/entities/exam-group.entity';
 import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
 import { Department } from '@modules/core-data/departments/entities/department.entity';
@@ -36,11 +37,8 @@ export class Course {
   @Property({ default: true })
   is_active!: boolean; // Môn học đang mở/khóa
 
-  @OneToMany(() => ExamGroup, (examGroup) => examGroup.course)
-  examGroup = new Collection<ExamGroup>(this);
-
-  @OneToMany(() => StudentCourseRegistration, (scr) => scr.course)
-  registrations = new Collection<StudentCourseRegistration>(this);
+  @OneToMany(() => CourseDepartment, (cd) => cd.course)
+  courseDepartments = new Collection<CourseDepartment>(this);
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;

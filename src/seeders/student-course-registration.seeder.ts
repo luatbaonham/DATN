@@ -1,73 +1,29 @@
-// import { Seeder } from '@mikro-orm/seeder';
-// import { EntityManager } from '@mikro-orm/mysql';
-// import { Student } from '@modules/core-data/students/entities/student.entity';
-// import { Course } from '@modules/algorithm-input/course/entities/course.entity';
-// import { ExamSession } from '@modules/algorithm-input/exam-session/entities/exam-session.entity';
-// import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
-
-// export class StudentCourseRegistrationSeeder extends Seeder {
-//   async run(em: EntityManager): Promise<void> {
-//     const students = await em.find(Student, {});
-//     const courses = await em.find(Course, {});
-//     const examSession = await em.findOne(ExamSession, { id: 2 });
-
-//     if (!examSession) throw new Error('❌ Không tìm thấy đợt thi ID = 1');
-//     if (!students.length) throw new Error('❌ Không có sinh viên nào');
-//     if (!courses.length) throw new Error('❌ Không có môn học nào');
-
-//     console.log(
-//       `🔹 Đang tạo đăng ký học phần cho ${students.length} sinh viên...`,
-//     );
-
-//     let totalInserted = 0;
-
-//     for (const student of students) {
-//       // Random 3-6 môn
-//       const numCourses = Math.floor(Math.random() * 4) + 3; // 3→6
-//       const shuffled = [...courses].sort(() => Math.random() - 0.5);
-//       const selectedCourses = shuffled.slice(0, numCourses);
-
-//       for (const course of selectedCourses) {
-//         // Kiểm tra xem đã tồn tại chưa (tránh trùng)
-//         const existing = await em.findOne(StudentCourseRegistration, {
-//           student,
-//           course,
-//           examSession,
-//         });
-//         if (!existing) {
-//           const reg = em.create(StudentCourseRegistration, {
-//             student,
-//             course,
-//             examSession,
-//             is_active: true,
-//           });
-//           em.persist(reg);
-//           totalInserted++;
-//         }
-//       }
-//     }
-
-//     await em.flush();
-
-//     console.log(`✅ Đã tạo ${totalInserted} bản ghi StudentCourseRegistration`);
-//   }
-// }
 import { Seeder } from '@mikro-orm/seeder';
 import { EntityManager } from '@mikro-orm/mysql';
 import { Student } from '@modules/core-data/students/entities/student.entity';
 import { Course } from '@modules/algorithm-input/course/entities/course.entity';
 import { ExamSession } from '@modules/algorithm-input/exam-session/entities/exam-session.entity';
 import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
+import { CourseDepartment } from '@modules/algorithm-input/course-department/entities/course-department.entity';
 
 export class StudentCourseRegistrationSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
-    const students = await em.find(Student, {}); // 👉 chỉ lấy 5 sinh viên đầu { limit: 5 }
-    const courses = await em.find(Course, {}, { limit: 2 });
+    const students = await em.find(
+      Student,
+      {},
+      { populate: ['classes.department'] },
+    );
     const examSession = await em.findOne(ExamSession, { id: 1 });
 
     if (!examSession) throw new Error('❌ Không tìm thấy đợt thi');
     if (!students.length) throw new Error('❌ Không có sinh viên nào');
-    if (!courses.length) throw new Error('❌ Không có môn học nào');
+
+    // Lấy thông tin môn học kèm khoa tổ chức
+    const courseDepartments = await em.find(
+      CourseDepartment,
+      {},
+      { populate: ['course', 'department'] },
+    );
 
     console.log(
       `🔹 Đang tạo đăng ký học phần cho ${students.length} sinh viên...`,
@@ -76,17 +32,34 @@ export class StudentCourseRegistrationSeeder extends Seeder {
     const regs: StudentCourseRegistration[] = [];
 
     for (const student of students) {
-      // Random 2–3 môn cho mỗi sinh viên
+      const studentDept = student.classes.department;
+      const sameDeptCourses = courseDepartments.filter(
+        (cd) => cd.department.id === studentDept.id,
+      );
+      const otherDeptCourses = courseDepartments.filter(
+        (cd) => cd.department.id !== studentDept.id,
+      );
+
+      // Random xác suất 80% học môn của khoa mình
+      const useOwnDept = Math.random() < 0.8;
+      const availableCourses = useOwnDept ? sameDeptCourses : otherDeptCourses;
+
+      // Nếu khoa mình chưa có môn, fallback sang all courses
+      const pool = availableCourses.length
+        ? availableCourses
+        : courseDepartments;
+
+      // Random 2–3 môn
       const numCourses = Math.floor(Math.random() * 2) + 2;
-      const shuffled = [...courses].sort(() => Math.random() - 0.5);
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
       const selected = shuffled.slice(0, numCourses);
 
-      for (const course of selected) {
+      for (const cd of selected) {
         regs.push(
           em.create(StudentCourseRegistration, {
             student,
-            course,
             examSession,
+            courseDepartment: cd,
             is_active: true,
           }),
         );

@@ -1,125 +1,144 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/mysql';
-import { ExamSession } from '@modules/algorithm-input/exam-session/entities/exam-session.entity';
-import { ExamGroup } from '@modules/algorithm-input/exam-group/entities/exam-group.entity';
-import { StudentExamGroup } from '@modules/algorithm-input/student-exam-group/entities/student-exam-group.entity';
-import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
-import { Room } from '@modules/algorithm-input/room/entities/room.entity';
-import { Student } from '@modules/core-data/students/entities/student.entity';
-import { Course } from '@modules/algorithm-input/course/entities/course.entity';
+import { ExamSession } from '../exam-session/entities/exam-session.entity';
+import { ExamGroup } from '../exam-group/entities/exam-group.entity';
+import { StudentExamGroup } from '../student-exam-group/entities/student-exam-group.entity';
+import { StudentCourseRegistration } from '../student-course-registration/entities/student-course-registration.entity';
+import { CourseDepartment } from '../course-department/entities/course-department.entity';
 
 interface GaRoomInput {
   id: number;
   capacity: number;
   locationId: number;
 }
+
 @Injectable()
 export class ExamGroupingService {
   constructor(private readonly em: EntityManager) {}
 
-  async generateExamGroups(examSessionId: number, room: GaRoomInput[]) {
-    // --- 2️⃣ Lấy dữ liệu cần thiết ---
-    // Tạo “proxy entity” cho ExamSession chỉ bằng ID (không cần truy vấn DB)
-    // Dùng khi ta chỉ cần gán quan hệ (ManyToOne) cho ExamGroup
+  async generateExamGroups(examSessionId: number, rooms: GaRoomInput[]) {
     const examSession = this.em.getReference(ExamSession, examSessionId);
-    // danh sách sinh viên đăng kí môn học
+
     const registrations = await this.em.find(
       StudentCourseRegistration,
-      { examSession: examSessionId },
-      { populate: ['student', 'course'] },
+      { examSession: examSessionId, is_active: true },
+      {
+        populate: [
+          'student',
+          'courseDepartment.department',
+          'courseDepartment.course',
+        ],
+      },
     );
 
-    if (!room.length)
+    if (!rooms.length)
       throw new NotFoundException('Không có phòng nào trong cơ sở của đợt thi');
     if (!registrations.length)
       throw new NotFoundException('Không có sinh viên đăng ký thi');
 
-    const maxCapacity = Math.max(...room.map((r) => r.capacity));
+    const sortedRooms = [...rooms].sort((a, b) => a.capacity - b.capacity);
 
-    // --- 4️⃣ Gom sinh viên theo môn học ---
-    const groupedByCourse = new Map<
+    const groupedByCourseDept = new Map<
       number,
-      { course: Course; students: Student[] }
+      {
+        courseDepartment: CourseDepartment;
+        registrations: StudentCourseRegistration[];
+      }
     >();
 
     for (const reg of registrations) {
-      const course = reg.course;
-      if (!groupedByCourse.has(course.id)) {
-        groupedByCourse.set(course.id, { course, students: [] });
+      const cd = reg.courseDepartment;
+      if (!cd) {
+        console.warn(
+          `⚠️ Đăng ký không có courseDepartment: student=${reg.student.id}`,
+        );
+        continue;
       }
-      groupedByCourse.get(course.id)!.students.push(reg.student);
+
+      const key = cd.id;
+      if (!groupedByCourseDept.has(key)) {
+        groupedByCourseDept.set(key, {
+          courseDepartment: cd,
+          registrations: [],
+        });
+      }
+      groupedByCourseDept.get(key)!.registrations.push(reg);
     }
 
-    // --- 5️⃣ Tạo nhóm thi ---
     const newExamGroups: ExamGroup[] = [];
     const newStudentExamGroups: StudentExamGroup[] = [];
 
-    let groupCounter = 1;
+    for (const {
+      courseDepartment,
+      registrations,
+    } of groupedByCourseDept.values()) {
+      const course = courseDepartment.course;
+      if (!course) {
+        console.warn(
+          `⚠️ CourseDepartment không có Course: courseDepartment=${courseDepartment.id}`,
+        );
+        continue;
+      }
 
-    for (const [courseId, data] of groupedByCourse.entries()) {
-      const { course, students } = data;
-      const duration = course.duration_course_exam || 90;
       let index = 0;
+      while (index < registrations.length) {
+        const groupRegistrations = registrations.slice(
+          index,
+          index + sortedRooms[sortedRooms.length - 1].capacity,
+        );
+        const groupSize = groupRegistrations.length;
 
-      while (index < students.length) {
-        const groupStudents = students.slice(index, index + maxCapacity);
+        const recommendedRoom =
+          sortedRooms.find((r) => r.capacity >= groupSize) ??
+          sortedRooms[sortedRooms.length - 1];
+
         const examGroup = this.em.create(ExamGroup, {
-          course,
-          examSession, //lấy từ fe
-          expected_student_count: groupStudents.length,
+          examSession,
+          courseDepartment,
+          expected_student_count: groupSize,
+          actual_student_count: groupSize,
+          recommended_room_capacity: recommendedRoom.capacity,
           status: 'not_scheduled',
         });
         newExamGroups.push(examGroup);
 
-        for (const student of groupStudents) {
+        for (const reg of groupRegistrations) {
           const seg = this.em.create(StudentExamGroup, {
-            student,
+            student: reg.student,
             examGroup,
             is_active: true,
           });
           newStudentExamGroups.push(seg);
         }
 
-        index += maxCapacity;
-        groupCounter++;
+        index += recommendedRoom.capacity;
       }
     }
 
-    // --- 6️⃣ Lưu vào DB bằng transaction ---
-    await this.em.begin();
-    try {
-      await this.em.persistAndFlush([
-        ...newExamGroups,
-        ...newStudentExamGroups,
-      ]);
-      await this.em.commit();
-    } catch (err) {
-      await this.em.rollback();
-      throw err;
-    }
+    await this.em.transactional(async (em) => {
+      await em.persistAndFlush([...newExamGroups, ...newStudentExamGroups]);
+    });
 
-    // --- 7️⃣ Tạo dữ liệu GA ---
-    const studentsByExamGroup = new Map<number, number[]>();
-    for (const seg of newStudentExamGroups) {
-      const groupId = seg.examGroup.id;
-      const studentId = seg.student.id;
-      if (!studentsByExamGroup.has(groupId)) {
-        studentsByExamGroup.set(groupId, []);
-      }
-      studentsByExamGroup.get(groupId)!.push(studentId);
-    }
-
-    const examGroups = newExamGroups.map((eg) => ({
-      examGroupId: eg.id,
-      courseId: eg.course.id,
-      duration: eg.course.duration_course_exam || 90,
-      studentCount: eg.expected_student_count,
-    }));
-
-    // --- 8️⃣ Trả về dữ liệu cho SchedulingService ---
+    // --- Chuẩn hóa dữ liệu trả về cho GA service ---
     return {
-      examGroups,
-      studentsByExamGroup,
+      totalGroups: newExamGroups.length,
+      totalStudents: newStudentExamGroups.length,
+      examGroups: newExamGroups.map((eg) => ({
+        examGroupId: eg.id, // ✅ GA service dùng
+        courseId: eg.courseDepartment.course?.id ?? null,
+        departmentId: eg.courseDepartment.department?.id ?? null,
+        duration: eg.courseDepartment.course?.duration_course_exam ?? 90, // default nếu không có
+        studentCount: eg.actual_student_count,
+        status: eg.status,
+      })),
+      studentsByExamGroup: new Map<number, number[]>(
+        newStudentExamGroups.reduce((acc, seg) => {
+          const arr = acc.get(seg.examGroup.id) ?? [];
+          arr.push(seg.student.id);
+          acc.set(seg.examGroup.id, arr);
+          return acc;
+        }, new Map<number, number[]>()),
+      ),
     };
   }
 }

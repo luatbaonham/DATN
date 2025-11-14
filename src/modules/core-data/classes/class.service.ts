@@ -13,6 +13,7 @@ import { plainToInstance } from 'class-transformer';
 import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { ClassFilterDto } from './dto/class-filter.dto';
 import { ClassResponseDto } from './dto/class-response.dto';
+import { AcademicYear } from '../academic-year/entities/academic-year.entity';
 
 @Injectable()
 export class ClassService {
@@ -31,10 +32,17 @@ export class ClassService {
       throw new NotFoundException('Không tìm thấy khoa');
     }
 
+    const nam_nhap_hoc = await this.em.findOne(AcademicYear, {
+      id: dto.id_nam_nhap_hoc,
+    });
+    if (!nam_nhap_hoc) {
+      throw new NotFoundException('Không tìm thấy năm nhập học');
+    }
     const classEntity = this.em.create(Classes, {
       className: dto.name,
       classCode: dto.code,
       department,
+      nam_nhap_hoc,
     });
     await this.em.persistAndFlush(classEntity);
     return classEntity;

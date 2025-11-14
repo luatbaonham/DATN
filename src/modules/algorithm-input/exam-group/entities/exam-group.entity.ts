@@ -6,6 +6,7 @@ import {
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
+import { CourseDepartment } from '@modules/algorithm-input/course-department/entities/course-department.entity';
 import { Course } from '@modules/algorithm-input/course/entities/course.entity';
 import { ExamSession } from '@modules/algorithm-input/exam-session/entities/exam-session.entity';
 import { StudentExamGroup } from '@modules/algorithm-input/student-exam-group/entities/student-exam-group.entity';
@@ -17,13 +18,19 @@ export class ExamGroup {
   id!: number;
 
   @Property({ default: 0 })
-  expected_student_count!: number; // số SV dự kiến
+  expected_student_count?: number;
+
+  @Property({ default: 0 })
+  actual_student_count?: number;
 
   @Property({ default: 'not_scheduled' })
   status!: string; // not_scheduled / scheduled
 
-  @ManyToOne(() => Course)
-  course!: Course;
+  @Property({ nullable: true })
+  recommended_room_capacity?: number;
+
+  @ManyToOne(() => CourseDepartment)
+  courseDepartment!: CourseDepartment;
 
   @ManyToOne(() => ExamSession)
   examSession!: ExamSession;

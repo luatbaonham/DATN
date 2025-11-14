@@ -6,6 +6,7 @@ import {
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
+import { CourseDepartment } from '@modules/algorithm-input/course-department/entities/course-department.entity';
 import { ExamGroup } from '@modules/algorithm-input/exam-group/entities/exam-group.entity';
 import { Locations } from '@modules/algorithm-input/location/entities/locations.entity';
 import { StudentCourseRegistration } from '@modules/algorithm-input/student-course-registration/entities/student-course-registration.entity';
@@ -34,14 +35,17 @@ export class ExamSession {
   @ManyToOne(() => Locations)
   location!: Locations;
 
+  @ManyToOne(() => AcademicYear)
+  academicYear!: AcademicYear;
+
   @OneToMany(() => ExamGroup, (eg) => eg.examSession)
   examGroups = new Collection<ExamGroup>(this);
 
   @OneToMany(() => StudentCourseRegistration, (scr) => scr.examSession)
   registrations = new Collection<StudentCourseRegistration>(this);
 
-  @ManyToOne(() => AcademicYear)
-  academicYear!: AcademicYear;
+  @OneToMany(() => CourseDepartment, (cd) => cd.examSession)
+  courseDepartments = new Collection<CourseDepartment>(this);
 
   @Property({ onCreate: () => new Date() })
   createdAt?: Date;

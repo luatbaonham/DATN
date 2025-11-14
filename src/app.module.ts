@@ -25,6 +25,8 @@ import { ExamRegistrationModule } from '@modules/result/exam-registration/exam-r
 import { ExamSlotModule } from '@modules/result/exam-slot/exam-slot.module';
 import { ExamSupervisorModule } from '@modules/result/exam-supervisor/exam-supervisor.module';
 import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling.module';
+import { AcademicYearModule } from '@modules/core-data/academic-year/academic-year.module';
+import { CourseDepartmentModule } from '@modules/algorithm-input/course-department/course-department.module';
 
 @Module({
   imports: [
@@ -37,12 +39,14 @@ import { SchedulingModule } from '@modules/algorithm-input/scheduling/scheduling
     RolesPermissionsModule,
     UsersModule,
     //
+    AcademicYearModule,
     ClassModule,
     DepartmentModule,
     LecturerModule,
     StudentModule,
     //
     CourseModule,
+    CourseDepartmentModule,
     ExamGroupsModule,
     ExamSessionModule,
     LocationsModule,
