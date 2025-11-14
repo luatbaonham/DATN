@@ -41,9 +41,6 @@ export class ExamSession {
   @OneToMany(() => ExamGroup, (eg) => eg.examSession)
   examGroups = new Collection<ExamGroup>(this);
 
-  @OneToMany(() => StudentCourseRegistration, (scr) => scr.examSession)
-  registrations = new Collection<StudentCourseRegistration>(this);
-
   @OneToMany(() => CourseDepartment, (cd) => cd.examSession)
   courseDepartments = new Collection<CourseDepartment>(this);
 

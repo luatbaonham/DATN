@@ -2,6 +2,7 @@ import { Seeder } from '@mikro-orm/seeder';
 import { EntityManager } from '@mikro-orm/core';
 import { Classes } from '@modules/core-data/classes/entities/class.entity';
 import { Department } from '@modules/core-data/departments/entities/department.entity';
+import { AcademicYear } from '@modules/core-data/academic-year/entities/academic-year.entity';
 
 export class ClassSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
@@ -35,6 +36,14 @@ export class ClassSeeder extends Seeder {
       ],
     };
 
+    // Lấy năm học mặc định (ví dụ: 2025-2026)
+    const academicYear = await em.findOne(AcademicYear, { name: '2025-2026' });
+    if (!academicYear) {
+      throw new Error(
+        'Không tìm thấy năm học "2025-2026". Hãy chạy AcademicYearSeeder trước.',
+      );
+    }
+
     for (const code of departmentCodes) {
       const department = await em.findOne(Department, { departmentCode: code });
       if (!department) continue;
@@ -43,7 +52,11 @@ export class ClassSeeder extends Seeder {
       for (const data of classes) {
         const exist = await em.findOne(Classes, { classCode: data.classCode });
         if (!exist) {
-          em.create(Classes, { ...data, department });
+          em.create(Classes, {
+            ...data,
+            department,
+            nam_nhap_hoc: academicYear,
+          });
         }
       }
     }

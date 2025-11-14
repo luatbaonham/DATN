@@ -21,7 +21,7 @@ export class ExamGroupingService {
 
     const registrations = await this.em.find(
       StudentCourseRegistration,
-      { examSession: examSessionId, is_active: true },
+      { is_active: true },
       {
         populate: [
           'student',

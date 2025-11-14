@@ -17,11 +17,6 @@ export class StudentCourseRegistrationResponseDto {
   student!: StudentResponseDto;
 
   @Expose()
-  @Type(() => ExamSessionResponseDto)
-  @ApiProperty({ type: () => ExamSessionResponseDto })
-  examSession!: ExamSessionResponseDto;
-
-  @Expose()
   @ApiProperty({ example: true })
   is_active!: boolean;
 

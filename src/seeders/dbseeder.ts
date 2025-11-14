@@ -10,6 +10,7 @@ import { RoomSeeder } from './room.seed';
 import { StudentSeeder } from './student.seeder';
 import { LecturerSeeder } from './lecturer.seeder';
 import { ExamSlotSeeder } from './exam-slot.seeder';
+import { AcademicYearSeeder } from './academic-year.seeder';
 
 export class Dbseeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
@@ -17,11 +18,12 @@ export class Dbseeder extends Seeder {
       PermissionSeeder,
       UserSeeder,
       UserAdminSeeder,
+      AcademicYearSeeder,
       LocationSeeder,
       DepartmentSeeder,
       ClassSeeder,
       RoomSeeder,
-      ExamSlotSeeder,
+      // ExamSlotSeeder,
       // StudentSeeder,
       // LecturerSeeder,
     ]);

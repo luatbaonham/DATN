@@ -12,9 +12,6 @@ export class StudentCourseRegistration {
   @ManyToOne(() => Student)
   student!: Student;
 
-  @ManyToOne(() => ExamSession)
-  examSession!: ExamSession;
-
   @Property({ default: true })
   is_active!: boolean;
 

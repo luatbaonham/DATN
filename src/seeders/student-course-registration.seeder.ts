@@ -58,7 +58,6 @@ export class StudentCourseRegistrationSeeder extends Seeder {
         regs.push(
           em.create(StudentCourseRegistration, {
             student,
-            examSession,
             courseDepartment: cd,
             is_active: true,
           }),

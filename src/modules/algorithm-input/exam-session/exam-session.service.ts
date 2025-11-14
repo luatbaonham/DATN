@@ -55,7 +55,6 @@ export class ExamSessionService {
     const registrations = await this.em.find(
       StudentCourseRegistration,
       {
-        examSession: examSession,
         is_active: true,
       },
       {
